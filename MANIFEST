@@ -1,0 +1,7 @@
+CompressUtils.xs
+CompressUtils.pm
+Makefile.PL
+MANIFEST
+README
+t/00_compress.t
+nkcompr.lib
