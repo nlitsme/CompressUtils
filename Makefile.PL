@@ -9,6 +9,6 @@ WriteMakefile(
     'VERSION_FROM' => 'CompressUtils.pm',
     'dist'	=> {COMPRESS => 'gzip -9f', SUFFIX => 'gz'},
 	'clean' => {FILES => ''},
-    'LIBS' => [ 'nkcompr.lib' ],
+    'LIBS' => [ 'nkcompr.lib cecompress.lib' ],
 );
 

@@ -5,3 +5,4 @@ MANIFEST
 README
 t/00_compress.t
 nkcompr.lib
+cecompress.lib
