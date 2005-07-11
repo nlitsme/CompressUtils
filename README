@@ -9,11 +9,12 @@ BUILD INSTRUCTIONS:
 
 0) make sure the vc++ environment is setup correctly
     ( by running vcvars32.bat )
-1) copy the nkcompr.lib to this directory
+1) unzip cecompr-libs.zip [see 3] in this directory
 2) type 'perl Makefile.PL'
 3) type 'nmake'
 4) optionally type 'nmake test'
 5) type 'nmake install'  to install it in your perl\lib directory.
+6) copy the .dll's to a convenient spot somewhere in your search PATH
 
 USAGE:
 
@@ -40,6 +41,19 @@ and
   LCICompress -> LZX_Encode
 
 it is possible that BinDecompressROM is used to compress the LZX version of wm2005 roms.
+
+
+DOWNLOAD
+
+This package can be found on the web, as browsable source on [1],
+or as PPM package, on [2].
+
+
+REFERENCES
+
+[1] http://nah6.com/~itsme/cvs-xdadevtools/
+[2] http://www.xs4all.nl/~itsme/projects/perl/ppm 
+[3] http://www.xs4all.nl/~itsme/projects/perl/ppm/cecompr-libs.zip
 
 
 (C) 2005 XDA Developers  itsme@xs4all.nl
