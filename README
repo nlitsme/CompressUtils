@@ -15,5 +15,31 @@ BUILD INSTRUCTIONS:
 4) optionally type 'nmake test'
 5) type 'nmake install'  to install it in your perl\lib directory.
 
+USAGE:
+
+   OS    |          --- perl functions ---         |  library         | library functions
+ version | compress           | decompress         |                  |
+---------+--------------------+--------------------+------------------+------------------------------------
+  3.x    | romcompress_v3     | romuncompress_v3   | nkcompr.lib      | CECompress, CEDecompress          
+         | rom3compress       | rom3uncompress     | CECompressv3.dll | CECompress, CEDecompress
+---------+--------------------+--------------------+------------------+------------------------------------
+  4.x    | rom4compress       | rom4uncompress     | CECompressv4.dll | CECompress, CEDecompress
+         |                    | romuncompress_v4   | nkcompr.lib      | CEDecompressROM
+         |                    | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
+---------+--------------------+--------------------+------------------+------------------------------------
+ 5.x XPR | DoCeCompressEncode | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
+---------+--------------------+--------------------+------------------+------------------------------------
+ 5.x LZX | ?                  | romuncompress_v5   | nkcompre.lib     | BinDecompressROM   ... unsure.
+---------+--------------------+--------------------+------------------+------------------------------------
+
+* the XpressXXX functions in cecompress.lib are used by the CeCompressXXX functions
+
+* i found this call chain:
+  CEDecompressROM -> BinDecompressROM -> Decompress -> LDIDecompress -> LZX_Decode
+and
+  LCICompress -> LZX_Encode
+
+it is possible that BinDecompressROM is used to compress the LZX version of wm2005 roms.
+
 
 (C) 2005 XDA Developers  itsme@xs4all.nl
