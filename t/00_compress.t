@@ -30,18 +30,34 @@ testdecompress("romuncompress_v4",  $compressed4, $uncompressed4, 1);
 testdecompress("rom3uncompressRom", $compressed4, $uncompressed4, 1);
 #testdecompress("DoCeCompressDecode",$compressed4, $uncompressed4);
 
-print "\n ... with 5 data ... \n";
+print "\n ... with 5 XPR data ... \n";
 
-my $compressed5= pack("H*", "0086a20a424d86000300461800281800101c00010002c30003b8000f0000aea10007006180808000c0c0c000ffff010008ffff00aa07002aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82a3b007900b900f900070001");
-my $uncompressed5= pack("H*", "424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa");
+my $compressed5_xpr= pack("H*", "0086a20a424d86000300461800281800101c00010002c30003b8000f0000aea10007006180808000c0c0c000ffff010008ffff00aa07002aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82a3b007900b900f900070001");
+my $uncompressed5_xpr= pack("H*", "424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa");
 
-#testdecompress("rom3uncompress",  $compressed5, $uncompressed5, 1);
-#testdecompress("rom4uncompress",  $compressed5, $uncompressed5, 1);
-#testdecompress("romuncompress_v3",  $compressed5, $uncompressed5);
-#testdecompress("romuncompress_v4",  $compressed5, $uncompressed5);
-#testdecompress("romuncompress_v5",  $compressed5, $uncompressed5);
-#testdecompress("rom3uncompressRom", $compressed5, $uncompressed5);
-testdecompress("DoCeCompressDecode",$compressed5, $uncompressed5);
+#testdecompress("rom3uncompress",  $compressed5_xpr, $uncompressed5_xpr, 1);
+#testdecompress("rom4uncompress",  $compressed5_xpr, $uncompressed5_xpr, 1);
+#testdecompress("romuncompress_v3",  $compressed5_xpr, $uncompressed5_xpr);
+#testdecompress("romuncompress_v4",  $compressed5_xpr, $uncompressed5_xpr);
+#testdecompress("romuncompress_v5",  $compressed5_xpr, $uncompressed5_xpr);
+#testdecompress("rom3uncompressRom", $compressed5_xpr, $uncompressed5_xpr);
+testdecompress("DoCeCompressDecode",$compressed5_xpr, $uncompressed5_xpr);
+
+print "\n ... with 5 LZX data ... \n";
+
+my $compressed5_lzx= pack("H*","a8000000e50000005b80808d0010510e00000000330300500e452754dc6b2ec802a1674a659ba437edabaaca70b708aaffa9ffff40700000000000cd0d0030017121812726329885cc964e4915aaff3ffeff800000000000000001104200ff42ffff22fd4129593663b748a75aa83093ef5a2f386c5fc730e6b2c2b784cc5b4737b11c19fa20fcbcec0a96fe28c0efa35af83b80076ba675ffa73ea7954b7f8164a204e6787cb945ef110893d06e0040");
+
+my $uncompressed5_lzx= pack("H*","4d4d4920416c6c0d0a5452414345434c4153532046460d0a4d4d490d0a0d0a4d4d20416c6c0d0a5452414345434c4153532046460d0a4d4d0d0a0d0a474d4d20414c4c0d0a5452414345434c4153532046460d0a474d4d0d0a0d0a434320416c6c0d0a5452414345434c4153532046460d0a43430d0a0d0a534d5320416c6c0d0a5452414345434c4153532046460d0a534d530d0a0d0a5353204576656e740d0a5452414345434c4153532030320d0a53530d0a0d0a4c31205374642054726163650d0a434f4e464947204c315f504152414d533d3c302c3132373e0d0a4353540d0a0d0a");
+
+#testdecompress("rom3uncompress",  $compressed5_lzx, $uncompressed5_lzx, 1);
+#testdecompress("rom4uncompress",  $compressed5_lzx, $uncompressed5_lzx, 1);
+#testdecompress("romuncompress_v3",  $compressed5_lzx, $uncompressed5_lzx);
+#testdecompress("romuncompress_v4",  $compressed5_lzx, $uncompressed5_lzx);
+#testdecompress("romuncompress_v5",  $compressed5_lzx, $uncompressed5_lzx);
+#testdecompress("rom3uncompressRom", $compressed5_lzx, $uncompressed5_lzx);
+#testdecompress("DoCeCompressDecode",$compressed5_lzx, $uncompressed5_lzx);
+
+print "\n ... testing function pairs ... \n";
 
 
 testpair(qw(romuncompress_v3 romcompress_v3), $uncompressed4, 1);
