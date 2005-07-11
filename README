@@ -30,7 +30,7 @@ USAGE:
 ---------+--------------------+--------------------+------------------+------------------------------------
  5.x XPR | DoCeCompressEncode | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
 ---------+--------------------+--------------------+------------------+------------------------------------
- 5.x LZX | ?                  | romuncompress_v5   | nkcompre.lib     | BinDecompressROM   ... unsure.
+ 5.x LZX | ?                  | romuncompress_v5   | nkcompr.lib      | BinDecompressROM   ... unsure.
 ---------+--------------------+--------------------+------------------+------------------------------------
 
 * the XpressXXX functions in cecompress.lib are used by the CeCompressXXX functions
