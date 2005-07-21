@@ -13,6 +13,19 @@
 #include "XSUB.h"
 #define CROAK croak
 
+#ifndef _MSC_VER
+#define PVOID void*
+#define LPVOID void*
+#define LPCVOID const void*
+#define LPBYTE unsigned char*
+#define VOID void
+#define DWORD unsigned long
+#define PDWORD unsigned long*
+#define WORD unsigned short
+#define BYTE unsigned char
+#define HMODULE LPVOID
+#endif
+
 #pragma optimize("", off)
 
 /*
