@@ -142,7 +142,7 @@ SV* rom3compress(const unsigned char *data, int length)
 {
     dMY_CXT;
     SV *result; DWORD res;
-    if (length==0) return &PL_sv_undef;
+    if (length==0 || MY_CXT.compress3==NULL) return &PL_sv_undef;
     result= newSV(length); SvPOK_on(result); SvCUR_set(result, length);
     res= MY_CXT.compress3(data, length, SvPV_nolen(result), length-1, 1, 4096);
     if (res==0xffffffff) {
@@ -157,7 +157,7 @@ SV* rom3uncompress(const unsigned char *data, int length, int outlength)
 {
     dMY_CXT;
     SV *result; DWORD res;
-    if (length==0) return &PL_sv_undef;
+    if (length==0 || MY_CXT.decompress3==NULL) return &PL_sv_undef;
     result= newSV(outlength); SvPOK_on(result); SvCUR_set(result, outlength);
     res= MY_CXT.decompress3(data, length, SvPV_nolen(result), outlength, 0, 1, 4096);
     if (res==0xffffffff) {
@@ -172,7 +172,7 @@ SV* rom3uncompressRom(const unsigned char *data, int length, int outlength)
 {
     dMY_CXT;
     SV *result; DWORD res;
-    if (length==0) return &PL_sv_undef;
+    if (length==0 || MY_CXT.decompressRom3==NULL) return &PL_sv_undef;
     result= newSV(outlength); SvPOK_on(result); SvCUR_set(result, outlength);
     res= MY_CXT.decompressRom3(data, length, SvPV_nolen(result), outlength, 0, 1, 4096);
     if (res==0xffffffff) {
@@ -188,7 +188,7 @@ SV* rom4compress(const unsigned char *data, int length)
 {
     dMY_CXT;
     SV *result; DWORD res;
-    if (length==0) return &PL_sv_undef;
+    if (length==0 || MY_CXT.compress4==NULL) return &PL_sv_undef;
     //printf("rom4compress(%08lx, %08lx)", data, length);
     result= newSV(length); SvPOK_on(result); SvCUR_set(result, length);
     res= MY_CXT.compress4(data, length, SvPV_nolen(result), length-1, 1, 4096);
@@ -205,7 +205,7 @@ SV* rom4uncompress(const unsigned char *data, int length, int outlength)
 {
     dMY_CXT;
     SV *result; DWORD res;
-    if (length==0) return &PL_sv_undef;
+    if (length==0 || MY_CXT.decompress4==NULL) return &PL_sv_undef;
     //printf("rom4uncompress(%08lx, %08lx, %08lx)", data, length, outlength);
     result= newSV(outlength); SvPOK_on(result); SvCUR_set(result, outlength);
     res= MY_CXT.decompress4(data, length, SvPV_nolen(result), outlength, 0, 1, 4096);
@@ -340,6 +340,179 @@ SV* DoXpressEncode(const unsigned char *data, int length)
 
 }
 
+STDAPI_(DWORD) CeRapiInvoke(LPCWSTR, LPCWSTR,DWORD,BYTE *, DWORD *,BYTE **, LPVOID,DWORD);
+STDAPI_(DWORD) CeRapiInit();
+STDAPI_(DWORD) CeRapiGetError();
+STDAPI_(DWORD) CeGetLastError();
+bool CheckITSDll()
+{
+    if (FAILED(CeRapiInit())) {
+        printf("le=%08lx re=%08lx ce=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError());
+        return FALSE;
+    }
+    return TRUE;
+}
+#define ITSCOMP_XPR_DECODE 0
+#define ITSCOMP_XPR_ENCODE 1
+#define ITSCOMP_LZX_DECODE 2
+#define ITSCOMP_LZX_ENCODE 3
+typedef struct _tagCompressParams {
+    DWORD dwType;       // lzx/xpr compress/decompress
+    DWORD dwMaxBlockSize;   // from volume header ... fixed to 0x1000 for now
+    DWORD outlength;
+    DWORD insize;
+    BYTE  data[1];
+} CompressParams;
+typedef struct _tagCompressResult {
+    DWORD outlength;
+    BYTE  data[1];
+} CompressResult;
+
+SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
+{
+    SV *result= NULL;
+    DWORD res= 0;
+    int insize= sizeof(CompressParams)+length;
+    CompressParams *inbuf= NULL;
+    DWORD outsize=0;
+    CompressResult *outbuf=NULL;
+
+    if (length==0) return &PL_sv_undef;
+
+    if (!CheckITSDll())
+        return &PL_sv_undef;
+
+    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
+
+    memcpy(inbuf->data, data, length);
+    inbuf->dwType= ITSCOMP_XPR_DECODE;
+    inbuf->dwMaxBlockSize= 0x1000;
+    inbuf->insize= length;
+    inbuf->outlength= outlength;
+    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
+            insize, (BYTE*)inbuf,
+            &outsize, (BYTE**)&outbuf, NULL, 0);
+    printf("le=%08lx re=%08lx ce=%08lx res=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError(), res);
+    if (res || outbuf==NULL) {
+        return &PL_sv_undef;
+    }
+
+    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
+    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
+
+    LocalFree(outbuf);
+    return result;
+}
+
+SV* XPR_CompressEncode(const unsigned char *data, int length)
+{
+    SV *result= NULL;
+    DWORD res= 0;
+    int insize= sizeof(CompressParams)+length;
+    CompressParams *inbuf= NULL;
+    DWORD outsize=0;
+    CompressResult *outbuf=NULL;
+
+    if (length==0) return &PL_sv_undef;
+
+    if (!CheckITSDll())
+        return &PL_sv_undef;
+
+    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
+
+    memcpy(inbuf->data, data, length);
+    inbuf->dwType= ITSCOMP_XPR_ENCODE;
+    inbuf->dwMaxBlockSize= 0x1000;
+    inbuf->insize= length;
+    inbuf->outlength= length-1;
+    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
+            insize, (BYTE*)inbuf,
+            &outsize, (BYTE**)&outbuf, NULL, 0);
+    if (res || outbuf==NULL) {
+        return &PL_sv_undef;
+    }
+
+    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
+    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
+
+    LocalFree(outbuf);
+    return result;
+}
+
+SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
+{
+    SV *result= NULL;
+    DWORD res= 0;
+    int insize= sizeof(CompressParams)+length;
+    CompressParams *inbuf= NULL;
+    DWORD outsize=0;
+    CompressResult *outbuf=NULL;
+
+    if (length==0) return &PL_sv_undef;
+
+    if (!CheckITSDll())
+        return &PL_sv_undef;
+
+    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
+
+    memcpy(inbuf->data, data, length);
+    inbuf->dwType= ITSCOMP_LZX_DECODE;
+    inbuf->dwMaxBlockSize= 0x1000;
+    inbuf->insize= length;
+    inbuf->outlength= outlength;
+    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
+            insize, (BYTE*)inbuf,
+            &outsize, (BYTE**)&outbuf, NULL, 0);
+    if (res || outbuf==NULL) {
+        return &PL_sv_undef;
+    }
+
+    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
+    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
+
+    LocalFree(outbuf);
+    return result;
+}
+
+SV* LZX_CompressEncode(const unsigned char *data, int length)
+{
+    SV *result= NULL;
+    DWORD res= 0;
+    int insize= sizeof(CompressParams)+length;
+    CompressParams *inbuf= NULL;
+    DWORD outsize=0;
+    CompressResult *outbuf=NULL;
+
+    if (length==0) return &PL_sv_undef;
+
+    if (!CheckITSDll())
+        return &PL_sv_undef;
+
+    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
+
+    memcpy(inbuf->data, data, length);
+    inbuf->dwType= ITSCOMP_LZX_ENCODE;
+    inbuf->dwMaxBlockSize= 0x1000;
+    inbuf->insize= length;
+    inbuf->outlength= length-1;
+    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
+            insize, (BYTE*)inbuf,
+            &outsize, (BYTE**)&outbuf, NULL, 0);
+    if (res || outbuf==NULL) {
+        return &PL_sv_undef;
+    }
+
+    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
+    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
+
+    LocalFree(outbuf);
+    return result;
+}
+
 
 MODULE = XdaDevelopers::CompressUtils   PACKAGE = XdaDevelopers::CompressUtils
 
@@ -371,6 +544,15 @@ SV* DoXpressDecode(unsigned char *data, int length(data), U32 outlength)
 
 SV* DoXpressEncode(unsigned char *data, int length(data))
 
+SV* XPR_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
+
+SV* XPR_CompressEncode(unsigned char *data, int length(data))
+
+SV* LZX_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
+
+SV* LZX_CompressEncode(unsigned char *data, int length(data))
+
+
 BOOT:
 {
     MY_CXT_INIT;
@@ -395,6 +577,6 @@ BOOT:
         MY_CXT.decompressRom3= (CEDECOMPRESS)GetProcAddress(MY_CXT.hDll3, "CEDecompressROM");
     }
     else {
-        printf("%08lx: failed to load dll4\n", GetLastError());
+        printf("%08lx: failed to load dll3\n", GetLastError());
     }
 }
