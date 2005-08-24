@@ -18,20 +18,21 @@ BUILD INSTRUCTIONS:
 
 USAGE:
 
-   OS    |          --- perl functions ---         |  library         | library functions
- version | compress           | decompress         |                  |
----------+--------------------+--------------------+------------------+------------------------------------
-  3.x    | romcompress_v3     | romuncompress_v3   | nkcompr.lib      | CECompress, CEDecompress          
-         | rom3compress       | rom3uncompress     | CECompressv3.dll | CECompress, CEDecompress
----------+--------------------+--------------------+------------------+------------------------------------
-  4.x    | rom4compress       | rom4uncompress     | CECompressv4.dll | CECompress, CEDecompress
-         |                    | romuncompress_v4   | nkcompr.lib      | CEDecompressROM
-         |                    | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
----------+--------------------+--------------------+------------------+------------------------------------
- 5.x XPR | DoCeCompressEncode | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
----------+--------------------+--------------------+------------------+------------------------------------
- 5.x LZX | ?                  | romuncompress_v5   | nkcompr.lib      | BinDecompressROM   ... unsure.
----------+--------------------+--------------------+------------------+------------------------------------
+   OS    |            --- perl functions ---         |  library         | library functions
+ version | compress             | decompress         |                  |
+---------+----------------------+--------------------+------------------+------------------------------------
+  3.x    | romcompress_v3       | romuncompress_v3   | nkcompr.lib      | CECompress, CEDecompress          
+         | rom3compress         | rom3uncompress     | CECompressv3.dll | CECompress, CEDecompress
+---------+----------------------+--------------------+------------------+------------------------------------
+  4.x    | rom4compress         | rom4uncompress     | CECompressv4.dll | CECompress, CEDecompress
+         |                      | romuncompress_v4   | nkcompr.lib      | CEDecompressROM
+         |                      | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
+---------+----------------------+--------------------+------------------+------------------------------------
+ 5.x XPR | DoCeCompressEncode   | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
+         | XPR_DecompressDecode | XPR_CompressEncode | cecompr.dll      | via CeRapiInvoke
+---------+----------------------+--------------------+------------------+------------------------------------
+ 5.x LZX | LZX_DecompressDecode | LZX_CompressEncode | cecompr.dll      | via CeRapiInvoke
+---------+----------------------+--------------------+------------------+------------------------------------
 
 * the XpressXXX functions in cecompress.lib are used by the CeCompressXXX functions
 
@@ -42,6 +43,8 @@ and
 
 it is possible that BinDecompressROM is used to compress the LZX version of wm2005 roms.
 
+* the *_{De}compress{De|En}code  functions are implemented by calling stubs in itsutils.dll via CeRapiInvoke.
+  you need a functioning wm2005 device attached to your pc via activesync.
 
 DOWNLOAD
 
