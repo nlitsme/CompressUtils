@@ -9,7 +9,7 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..27\n"; }
+BEGIN { $|=1; print "1..31\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
@@ -42,6 +42,7 @@ my $uncompressed5_xpr= pack("H*", "424d86000000000000004600000028000000100000001
 #testdecompress("romuncompress_v5",  $compressed5_xpr, $uncompressed5_xpr);
 #testdecompress("rom3uncompressRom", $compressed5_xpr, $uncompressed5_xpr);
 testdecompress("DoCeCompressDecode",$compressed5_xpr, $uncompressed5_xpr);
+testdecompress("XPR_DecompressDecode",$compressed5_xpr, $uncompressed5_xpr);
 
 print "\n ... with 5 LZX data ... \n";
 
@@ -56,6 +57,7 @@ my $uncompressed5_lzx= pack("H*","4d4d4920416c6c0d0a5452414345434c4153532046460d
 #testdecompress("romuncompress_v5",  $compressed5_lzx, $uncompressed5_lzx);
 #testdecompress("rom3uncompressRom", $compressed5_lzx, $uncompressed5_lzx);
 #testdecompress("DoCeCompressDecode",$compressed5_lzx, $uncompressed5_lzx);
+testdecompress("LZX_DecompressDecode",$compressed5_lzx, $uncompressed5_lzx);
 
 print "\n ... testing function pairs ... \n";
 
@@ -64,10 +66,13 @@ testpair(qw(romuncompress_v3 romcompress_v3), $uncompressed4, 1);
 testpair(qw(rom3uncompress rom3compress), $uncompressed4, 1);
 testpair(qw(rom4uncompress rom4compress), $uncompressed4, 1);
 testpair(qw(DoCeCompressDecode DoCeCompressEncode), $uncompressed4, 0);
+#testpair(qw(LZX_DecompressDecode LZX_CompressEncode), $uncompressed5_lzx, 0);
+#testpair(qw(XPR_DecompressDecode XPR_CompressEncode), $uncompressed5_xpr, 0);
 
 # this function apparently works differently, it crashes.
 #testpair(qw(DoXpressDecode DoXpressEncode));
 
+# add 3 to total test count for each testdecompress call
 sub testdecompress {
     my ($decompress, $compressed, $uncompressed, $testsize)= @_;
 
@@ -97,6 +102,7 @@ sub testdecompress {
     print "ok $t - decompress size\n";
     $t++;
 }
+# add 4 to total test count for each testpair call
 sub testpair {
     my ($decompress, $compress, $orig, $testtwice)= @_;
 
