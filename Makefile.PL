@@ -10,7 +10,7 @@ WriteMakefile(
     'dist'	=> {COMPRESS => 'gzip -9f', SUFFIX => 'gz'},
 	'clean' => {FILES => ''},
     # current problem: symbol name mismatch: in lib: _GetLastError@0, in object: _GetLastError
-    'LDFROM' => 'nkcompr$(LIB_EXT) cecompress$(LIB_EXT) $(BASEEXT)$(OBJ_EXT)',
+    'LDFROM' => 'nkcompr$(LIB_EXT) cecompress$(LIB_EXT) $(BASEEXT)$(OBJ_EXT) rapi$(LIB_EXT)',
     'LIBS' => [ '-L/usr/lib/w32api -lkernel32' ],
 );
 
