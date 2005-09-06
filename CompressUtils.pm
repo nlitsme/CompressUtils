@@ -7,7 +7,7 @@ require Exporter;
 require DynaLoader;
 our @ISA = qw(Exporter DynaLoader);
 
-our $VERSION = '0.10';
+our $VERSION = '0.20';
 
 bootstrap XdaDevelopers::CompressUtils $VERSION;
 
