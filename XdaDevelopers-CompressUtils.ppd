@@ -1,10 +1,10 @@
-<SOFTPKG NAME="XdaDevelopers-CompressUtils" VERSION="0,10,0,0">
-	<TITLE>XdaDevelopers-CompressUtils</TITLE>
-	<ABSTRACT>Utility functions for wince rom compression</ABSTRACT>
-	<AUTHOR>Willem Hengeveld &lt;itsme@xs4all.nl&gt;</AUTHOR>
-	<IMPLEMENTATION>
-		<OS NAME="MSWin32" />
-		<ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.8" />
-		<CODEBASE HREF="XdaDevelopers-CompressUtils-0.01ppm.tar.gz" />
-	</IMPLEMENTATION>
+<SOFTPKG NAME="XdaDevelopers-CompressUtils" VERSION="0,20,0,0">
+    <TITLE>XdaDevelopers-CompressUtils</TITLE>
+    <ABSTRACT>Utility functions for wince rom compression</ABSTRACT>
+    <AUTHOR>Willem Hengeveld &lt;itsme@xs4all.nl&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <OS NAME="MSWin32" />
+        <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.8" />
+        <CODEBASE HREF="XdaDevelopers-CompressUtils-0.02ppm.tar.gz" />
+    </IMPLEMENTATION>
 </SOFTPKG>
