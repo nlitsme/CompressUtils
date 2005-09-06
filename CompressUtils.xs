@@ -340,14 +340,197 @@ SV* DoXpressEncode(const unsigned char *data, int length)
 
 }
 
+typedef struct _RAPIINIT
+{
+    DWORD cbSize;
+    HANDLE heRapiInit;
+    HRESULT hrRapiInit;
+} RAPIINIT;
+
 STDAPI_(DWORD) CeRapiInvoke(LPCWSTR, LPCWSTR,DWORD,BYTE *, DWORD *,BYTE **, LPVOID,DWORD);
-STDAPI_(DWORD) CeRapiInit();
+STDAPI_(DWORD) CeRapiInitEx(RAPIINIT *);
 STDAPI_(DWORD) CeRapiGetError();
 STDAPI_(DWORD) CeGetLastError();
-bool CheckITSDll()
+STDAPI_(DWORD ) CeGetFileAttributes  (LPCWSTR);
+STDAPI_(HANDLE) CeCreateFile         (LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
+STDAPI_(BOOL  ) CeWriteFile          (HANDLE, LPCVOID, DWORD, LPDWORD, LPOVERLAPPED);
+STDAPI_(BOOL  ) CeCloseHandle        (HANDLE);
+
+void init_wstring(short *wstr, int wsize, const char *str)
 {
-    if (FAILED(CeRapiInit())) {
-        printf("le=%08lx re=%08lx ce=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError());
+    int i;
+    for (i=0 ; i<wsize-1 && str[i] ; i++)
+        wstr[i]= str[i];
+    wstr[i]= 0;
+}
+void appendwpath(short *wstr, int wsize, const char *str)
+{
+    int i, j;
+    for (i=0 ; i<wsize-1 && wstr[i] ; i++)
+        ;
+    for (j=0 ; i<wsize-1 && str[j] ; i++,j++)
+        wstr[i]= str[j];
+    wstr[i]= 0;
+}
+BOOL CeCopyFileToDevice(const char *srcfile, const char *dstfile) 
+{
+    WIN32_FIND_DATA wfd;
+    short dstname[MAX_PATH];
+    HANDLE hFind = FindFirstFile(srcfile, &wfd);
+    DWORD dwAttr;
+    HANDLE hSrc;
+    HANDLE hDest;
+    unsigned char buffer[2048];
+    DWORD dwNumRead;
+    DWORD dwNumWritten;
+
+    if (INVALID_HANDLE_VALUE == hFind)
+    {
+        printf("ERROR: FindFirstFile - %08lx\n", GetLastError());
+        // ERROR: Source/host file does not exist
+        return FALSE;
+    }
+    FindClose( hFind);
+
+    if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        printf("ERROR: %s is not a file\n", srcfile);
+        // ERROR: Source/host file specifies a directory
+        return FALSE;
+    }
+
+    init_wstring(dstname, MAX_PATH, dstfile);
+
+
+    dwAttr = CeGetFileAttributes(dstname);
+    if (0xFFFFFFFF  != dwAttr)
+    {
+        if (dwAttr & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            appendwpath(dstname, MAX_PATH, wfd.cFileName);
+        }
+        else
+        {
+            // File already exists.
+            return TRUE;
+        }
+    }
+
+    hSrc = CreateFile( srcfile, GENERIC_READ, FILE_SHARE_READ,
+                NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (INVALID_HANDLE_VALUE == hSrc)
+    {
+        // ERROR: Unable to open source/host file
+        printf("ERROR: CreateFile(%s) - %08lx\n", srcfile, GetLastError());
+        return FALSE;
+    }
+    hDest = CeCreateFile( dstname, GENERIC_WRITE, FILE_SHARE_READ,
+                NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (INVALID_HANDLE_VALUE == hDest )
+    {
+        // ERROR: Unable to open WinCE file
+        printf("ERROR: CeCreateFile(%ls) - %08lx\n", dstname, CeGetLastError());
+        return FALSE;
+    }
+
+    // Copying srcfile to WCE: dstname
+    do
+    {
+        if (ReadFile( hSrc, buffer, sizeof(buffer), &dwNumRead, NULL))
+        {
+            if (!CeWriteFile( hDest, buffer, dwNumRead, &dwNumWritten, NULL))
+            {
+                printf("ERROR: CeWriteFile - %08lx\n", CeGetLastError());
+                // ERROR: Writing WinCE file
+                CeCloseHandle( hDest);
+                CloseHandle (hSrc);
+                return FALSE;
+            }
+        }
+        else
+        {
+            printf("ERROR: ReadFile - %08lx\n", CeGetLastError());
+            // ERROR: Reading source file
+            CeCloseHandle( hDest);
+            CloseHandle (hSrc);
+            return FALSE;
+        }
+    } while (dwNumRead);
+    CeCloseHandle( hDest);
+    CloseHandle (hSrc);
+    return TRUE;
+}
+
+BOOL WaitForDevice()
+{
+    char *szTitle= "CompressUtils";
+    RAPIINIT rinit; 
+    rinit.cbSize= sizeof(RAPIINIT);
+    rinit.heRapiInit= NULL;
+    rinit.hrRapiInit= -1;
+    if (CeRapiInitEx(&rinit))
+    {
+        printf("ERROR: CeRapiInitEx - %08lx\n", GetLastError());
+        // ERROR initializing rapi
+        return FALSE;
+    }
+
+    while (TRUE)
+    {
+        // msgwait is used to be able to handle windows messages while waiting.
+        DWORD res= MsgWaitForMultipleObjects(1, &rinit.heRapiInit, FALSE, 1000, 0);
+        if (res==WAIT_OBJECT_0)
+            break;
+
+        if (res!=WAIT_TIMEOUT)
+        {
+            printf("ERROR: MsgWaitForMultipleObjects - %08lx\n", GetLastError());
+            // ERROR waiting for rapi init
+            return FALSE;
+        }
+        res= MessageBox(0, "Please connect your XDA to activesync", szTitle, MB_RETRYCANCEL);
+        if (res==IDCANCEL)
+        {
+            // User decided not to connect
+            return FALSE;
+        }
+    }
+    if (rinit.hrRapiInit)
+    {
+        printf("timeout waiting for device\n");
+        // ERROR connecting to XDA
+        return FALSE;
+    }
+    return TRUE;
+}
+
+char *GetAppPath()
+{
+    static char appname[1024];
+    int i;
+    if (!GetModuleFileName(NULL, appname, 1024))
+        return NULL;
+    for (i=strlen(appname)-1 ; i>=0 ; i--)
+        if (appname[i]=='\\' || appname[i]=='/')
+            break;
+    appname[i]= 0;
+
+    return appname;
+}
+
+BOOL CheckITSDll()
+{
+    char *dllpath;
+    if (!WaitForDevice())
+    {
+        printf("Could not connect to device\n");
+        return FALSE;
+    }
+    dllpath= GetAppPath();
+    strcat(dllpath, "\\itsutils.dll");
+    if (!CeCopyFileToDevice(dllpath, "\\windows"))
+    {
+        printf("ERROR copying itsutils.dll to device\n");
         return FALSE;
     }
     return TRUE;
@@ -378,7 +561,6 @@ SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
     CompressResult *outbuf=NULL;
 
     if (length==0) return &PL_sv_undef;
-
     if (!CheckITSDll())
         return &PL_sv_undef;
 
@@ -389,12 +571,12 @@ SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
     inbuf->dwMaxBlockSize= 0x1000;
     inbuf->insize= length;
     inbuf->outlength= outlength;
-    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
     res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
             insize, (BYTE*)inbuf,
             &outsize, (BYTE**)&outbuf, NULL, 0);
-    printf("le=%08lx re=%08lx ce=%08lx res=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError(), res);
     if (res || outbuf==NULL) {
+        //printf("le=%08lx re=%08lx ce=%08lx res=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError(), res);
         return &PL_sv_undef;
     }
 
@@ -426,7 +608,7 @@ SV* XPR_CompressEncode(const unsigned char *data, int length)
     inbuf->dwMaxBlockSize= 0x1000;
     inbuf->insize= length;
     inbuf->outlength= length-1;
-    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
     res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
             insize, (BYTE*)inbuf,
             &outsize, (BYTE**)&outbuf, NULL, 0);
@@ -462,7 +644,7 @@ SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
     inbuf->dwMaxBlockSize= 0x1000;
     inbuf->insize= length;
     inbuf->outlength= outlength;
-    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
     res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
             insize, (BYTE*)inbuf,
             &outsize, (BYTE**)&outbuf, NULL, 0);
@@ -498,7 +680,7 @@ SV* LZX_CompressEncode(const unsigned char *data, int length)
     inbuf->dwMaxBlockSize= 0x1000;
     inbuf->insize= length;
     inbuf->outlength= length-1;
-    printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
+    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
     res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
             insize, (BYTE*)inbuf,
             &outsize, (BYTE**)&outbuf, NULL, 0);
