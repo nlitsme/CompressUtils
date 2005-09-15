@@ -368,6 +368,7 @@ void appendwpath(short *wstr, int wsize, const char *str)
     int i, j;
     for (i=0 ; i<wsize-1 && wstr[i] ; i++)
         ;
+    wstr[i++] = '\\';
     for (j=0 ; i<wsize-1 && str[j] ; i++,j++)
         wstr[i]= str[j];
     wstr[i]= 0;
