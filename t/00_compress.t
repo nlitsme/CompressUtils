@@ -9,7 +9,7 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..31\n"; }
+BEGIN { $|=1; print "1..37\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
@@ -66,8 +66,8 @@ testpair(qw(romuncompress_v3 romcompress_v3), $uncompressed4, 1);
 testpair(qw(rom3uncompress rom3compress), $uncompressed4, 1);
 testpair(qw(rom4uncompress rom4compress), $uncompressed4, 1);
 testpair(qw(DoCeCompressDecode DoCeCompressEncode), $uncompressed4, 0);
-#testpair(qw(LZX_DecompressDecode LZX_CompressEncode), $uncompressed5_lzx, 0);
-#testpair(qw(XPR_DecompressDecode XPR_CompressEncode), $uncompressed5_xpr, 0);
+testpair(qw(LZX_DecompressDecode LZX_CompressEncode), $uncompressed5_lzx, 0);
+testpair(qw(XPR_DecompressDecode XPR_CompressEncode), $uncompressed5_xpr, 0);
 
 # this function apparently works differently, it crashes.
 #testpair(qw(DoXpressDecode DoXpressEncode));
