@@ -384,10 +384,15 @@ SV* DoXpressEncode(const unsigned char *data, int length)
 
 LPVOID Compress_AllocFunc(DWORD AllocSize)
 {
-    return LocalAlloc(LPTR, AllocSize);
+    LPVOID p= LocalAlloc(LPTR, AllocSize);
+
+    //printf("Compress_AllocFunc(%08lx) -> %08lx\n", AllocSize, p);
+
+    return p;
 }
 VOID Compress_FreeFunc(LPVOID Address)
 {
+    //printf("Compress_FreeFunc(%08lx)\n", Address);
     LocalFree(Address);
 }
 
@@ -396,11 +401,12 @@ VOID Compress_FreeFunc(LPVOID Address)
 #define ITSCOMP_LZX_DECODE 2
 #define ITSCOMP_LZX_ENCODE 3
 
-BOOL DoCompressConvert(int dwType, DWORD dwMaxBlockSize, SV*out, DWORD outlength, BYTE *data, DWORD insize)
+BOOL DoCompressConvert(int dwType, DWORD dwMaxBlockSize, SV*out, DWORD outlength, const BYTE *data, DWORD insize)
 {
     dMY_CXT;
     DWORD stream;
     DWORD res;
+    BYTE *in;
 
     FNCompressOpen CompressOpen= NULL;
     FNCompressConvert CompressConvert= NULL;
@@ -438,22 +444,24 @@ BOOL DoCompressConvert(int dwType, DWORD dwMaxBlockSize, SV*out, DWORD outlength
         return FALSE;
     }
 
-    res= CompressConvert(stream, SvPV_nolen(out), outlength, data, insize);
-    if (res==0 || res==0xffffffff) {
-        CompressClose(stream);
-        return FALSE;
-    }
+    New(0, in, dwMaxBlockSize, BYTE);
+    Copy(data, in, insize, BYTE);
 
-    SvCUR_set(out, res);
+    //printf("DoCompressConvert(%d, %08lx, %08lx %08lx, (%08lx-%08lx)->(%08lx-%08lx), %08lx)\n", dwType, stream, SvPV_nolen(out), outlength, data, data+insize, in, in+insize, insize);
+    res= CompressConvert(stream, SvPV_nolen(out), outlength, in, insize);
+    if (res!=0 && res!=0xffffffff) {
+        SvCUR_set(out, res);
+    }
+    Safefree(in);
 
     CompressClose(stream);
-    return TRUE;
+    return (res!=0 && res!=0xffffffff);
 }
 SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 {
     SV *result= NULL;
     DWORD res= 0;
-    DWORD dwMaxBlockSize= 0x1000;
+    DWORD dwMaxBlockSize= 0x2000;
 
     if (length==0) return &PL_sv_undef;
 
@@ -469,7 +477,7 @@ SV* XPR_CompressEncode(const unsigned char *data, int length)
 {
     SV *result= NULL;
     DWORD res= 0;
-    DWORD dwMaxBlockSize= 0x1000;
+    DWORD dwMaxBlockSize= 0x2000;
 
     if (length==0) return &PL_sv_undef;
 
@@ -484,7 +492,7 @@ SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 {
     SV *result= NULL;
     DWORD res= 0;
-    DWORD dwMaxBlockSize= 0x1000;
+    DWORD dwMaxBlockSize= 0x2000;
 
     if (length==0) return &PL_sv_undef;
 
@@ -499,7 +507,7 @@ SV* LZX_CompressEncode(const unsigned char *data, int length)
 {
     SV *result= NULL;
     DWORD res= 0;
-    DWORD dwMaxBlockSize= 0x1000;
+    DWORD dwMaxBlockSize= 0x2000;
 
     if (length==0) return &PL_sv_undef;
 
