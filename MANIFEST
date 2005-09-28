@@ -6,4 +6,4 @@ README
 t/00_compress.t
 CECompressv3.dll
 CECompressv4.dll
-itsutils.dll
+cecompr_nt.dll
