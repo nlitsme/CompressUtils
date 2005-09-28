@@ -29,22 +29,12 @@ USAGE:
          |                      | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
 ---------+----------------------+--------------------+------------------+------------------------------------
  5.x XPR | DoCeCompressEncode   | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
-         | XPR_DecompressDecode | XPR_CompressEncode | cecompr.dll      | via CeRapiInvoke
+         | XPR_DecompressDecode | XPR_CompressEncode | cecompr_nt.dll   | same
 ---------+----------------------+--------------------+------------------+------------------------------------
- 5.x LZX | LZX_DecompressDecode | LZX_CompressEncode | cecompr.dll      | via CeRapiInvoke
+ 5.x LZX | LZX_DecompressDecode | LZX_CompressEncode | cecompr_nt.dll   | same
 ---------+----------------------+--------------------+------------------+------------------------------------
 
 * the XpressXXX functions in cecompress.lib are used by the CeCompressXXX functions
-
-* i found this call chain:
-  CEDecompressROM -> BinDecompressROM -> Decompress -> LDIDecompress -> LZX_Decode
-and
-  LCICompress -> LZX_Encode
-
-it is possible that BinDecompressROM is used to compress the LZX version of wm2005 roms.
-
-* the *_{De}compress{De|En}code  functions are implemented by calling stubs in itsutils.dll via CeRapiInvoke.
-  you need a functioning wm2005 device attached to your pc via activesync.
 
 DOWNLOAD
 

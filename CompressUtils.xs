@@ -53,7 +53,54 @@
 #	define call_method(name, flags) perl_call_method(name, flags)
 #endif
 
+// .......................................................................
+// global module context, containing functions from dynamically loaded libraries.
 
+#define MY_CXT_KEY "XdaDevelopers::CompressUtils::_guts" XS_VERSION
+                                                 
+// prototypes of cecompressv3.dll and cecompressv4.dll
+typedef DWORD (*CECOMPRESS)(const LPBYTE  lpbSrc, DWORD cbSrc, LPBYTE lpbDest, DWORD cbDest, WORD wStep, DWORD dwPagesize);
+typedef DWORD (*CEDECOMPRESS)(const LPBYTE  lpbSrc, DWORD cbSrc, LPBYTE  lpbDest, DWORD cbDest, DWORD dwSkip, WORD wStep, DWORD dwPagesize);
+
+// prototypes of cecompr_nt.dll
+typedef LPVOID (*FNCompressAlloc)(DWORD AllocSize);
+typedef VOID (*FNCompressFree)(LPVOID Address);
+typedef DWORD (*FNCompressOpen)( DWORD dwParam1, DWORD MaxOrigSize, FNCompressAlloc AllocFn, FNCompressFree FreeFn, DWORD dwUnknown);
+typedef DWORD (*FNCompressConvert)( DWORD ConvertStream, LPVOID CompAdr, DWORD CompSize, LPCVOID OrigAdr, DWORD OrigSize); 
+typedef VOID (*FNCompressClose)( DWORD ConvertStream);
+
+
+typedef struct {
+
+    HMODULE hDll3;
+    CECOMPRESS compress3;
+    CEDECOMPRESS decompress3;
+    CEDECOMPRESS decompressRom3;
+
+    HMODULE hDll4;
+    CECOMPRESS compress4;
+    CEDECOMPRESS decompress4;
+
+    HMODULE hDllnt;
+    FNCompressClose LZX_CompressClose;
+    FNCompressConvert LZX_CompressEncode;
+    FNCompressOpen LZX_CompressOpen;
+    FNCompressClose LZX_DecompressClose;
+    FNCompressConvert LZX_DecompressDecode;
+    FNCompressOpen LZX_DecompressOpen;
+    FNCompressClose XPR_CompressClose;
+    FNCompressConvert XPR_CompressEncode;
+    FNCompressOpen XPR_CompressOpen;
+    FNCompressClose XPR_DecompressClose;
+    FNCompressConvert XPR_DecompressDecode;
+    FNCompressOpen XPR_DecompressOpen;
+
+} my_cxt_t;
+                                                 
+START_MY_CXT
+
+
+// ............................................................
 // functions interfacing with nkcompr.lib
 DWORD CEDecompressROM(const LPBYTE BufIn, DWORD InSize, LPBYTE BufOut, DWORD OutSize, DWORD skip, DWORD n, DWORD blocksize);
 DWORD CEDecompress(const LPBYTE BufIn, DWORD InSize, LPBYTE BufOut, DWORD OutSize, DWORD skip, DWORD n, DWORD blocksize);
@@ -123,23 +170,9 @@ SV* romuncompress_v5(const unsigned char *data, int length, int outlength)
     return result;
 }
 
-// functions interfacing with Compress.dll
-#define MY_CXT_KEY "XdaDevelopers::CompressUtils::_guts" XS_VERSION
-                                                 
-typedef DWORD (*CECOMPRESS)(const LPBYTE  lpbSrc, DWORD cbSrc, LPBYTE lpbDest, DWORD cbDest, WORD wStep, DWORD dwPagesize);
-typedef DWORD (*CEDECOMPRESS)(const LPBYTE  lpbSrc, DWORD cbSrc, LPBYTE  lpbDest, DWORD cbDest, DWORD dwSkip, WORD wStep, DWORD dwPagesize);
-typedef struct {
-    HMODULE hDll3;
-    CECOMPRESS compress3;
-    CEDECOMPRESS decompress3;
-    CEDECOMPRESS decompressRom3;
-    HMODULE hDll4;
-    CECOMPRESS compress4;
-    CEDECOMPRESS decompress4;
-} my_cxt_t;
-                                                 
-START_MY_CXT
-
+// .........................................................
+// interface to cecompressv3.dll
+//
 SV* rom3compress(const unsigned char *data, int length)
 {
     dMY_CXT;
@@ -186,6 +219,9 @@ SV* rom3uncompressRom(const unsigned char *data, int length, int outlength)
     return result;
 }
 
+// .........................................................
+// interface to cecompressv4.dll
+//
 SV* rom4compress(const unsigned char *data, int length)
 {
     dMY_CXT;
@@ -221,6 +257,7 @@ SV* rom4uncompress(const unsigned char *data, int length, int outlength)
     return result;
 }
 
+// ..................................................................
 // functions interfacing with CeCompress.lib
 #define CECOMPRESS_MAX_BLOCK_LOG 16
 #define CECOMPRESS_MAX_BLOCK (1 << CECOMPRESS_MAX_BLOCK_LOG)
@@ -342,251 +379,89 @@ SV* DoXpressEncode(const unsigned char *data, int length)
 
 }
 
-typedef struct _RAPIINIT
-{
-    DWORD cbSize;
-    HANDLE heRapiInit;
-    HRESULT hrRapiInit;
-} RAPIINIT;
+// ....................................................................
+// interface to cecompr_nt.dll
 
-STDAPI_(DWORD) CeRapiInvoke(LPCWSTR, LPCWSTR,DWORD,BYTE *, DWORD *,BYTE **, LPVOID,DWORD);
-STDAPI_(DWORD) CeRapiInitEx(RAPIINIT *);
-STDAPI_(DWORD) CeRapiGetError();
-STDAPI_(DWORD) CeGetLastError();
-STDAPI_(DWORD ) CeGetFileAttributes  (LPCWSTR);
-STDAPI_(HANDLE) CeCreateFile         (LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
-STDAPI_(BOOL  ) CeWriteFile          (HANDLE, LPCVOID, DWORD, LPDWORD, LPOVERLAPPED);
-STDAPI_(BOOL  ) CeCloseHandle        (HANDLE);
-
-void init_wstring(short *wstr, int wsize, const char *str)
+LPVOID Compress_AllocFunc(DWORD AllocSize)
 {
-    int i;
-    for (i=0 ; i<wsize-1 && str[i] ; i++)
-        wstr[i]= str[i];
-    wstr[i]= 0;
+    return LocalAlloc(LPTR, AllocSize);
 }
-void appendwpath(short *wstr, int wsize, const char *str)
+VOID Compress_FreeFunc(LPVOID Address)
 {
-    int i, j;
-    for (i=0 ; i<wsize-1 && wstr[i] ; i++)
-        ;
-    wstr[i++] = '\\';
-    for (j=0 ; i<wsize-1 && str[j] ; i++,j++)
-        wstr[i]= str[j];
-    wstr[i]= 0;
-}
-BOOL CeCopyFileToDevice(const char *srcfile, const char *dstfile) 
-{
-    WIN32_FIND_DATA wfd;
-    short dstname[MAX_PATH];
-    HANDLE hFind = FindFirstFile(srcfile, &wfd);
-    DWORD dwAttr;
-    HANDLE hSrc;
-    HANDLE hDest;
-    unsigned char buffer[2048];
-    DWORD dwNumRead;
-    DWORD dwNumWritten;
-
-    if (INVALID_HANDLE_VALUE == hFind)
-    {
-        printf("ERROR: FindFirstFile - %08lx\n", GetLastError());
-        // ERROR: Source/host file does not exist
-        return FALSE;
-    }
-    FindClose( hFind);
-
-    if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    {
-        printf("ERROR: %s is not a file\n", srcfile);
-        // ERROR: Source/host file specifies a directory
-        return FALSE;
-    }
-
-    init_wstring(dstname, MAX_PATH, dstfile);
-
-
-    dwAttr = CeGetFileAttributes(dstname);
-    if (0xFFFFFFFF  != dwAttr)
-    {
-        if (dwAttr & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            appendwpath(dstname, MAX_PATH, wfd.cFileName);
-        }
-        else
-        {
-            // File already exists.
-            return TRUE;
-        }
-    }
-
-    hSrc = CreateFile( srcfile, GENERIC_READ, FILE_SHARE_READ,
-                NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (INVALID_HANDLE_VALUE == hSrc)
-    {
-        // ERROR: Unable to open source/host file
-        printf("ERROR: CreateFile(%s) - %08lx\n", srcfile, GetLastError());
-        return FALSE;
-    }
-    hDest = CeCreateFile( dstname, GENERIC_WRITE, FILE_SHARE_READ,
-                NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (INVALID_HANDLE_VALUE == hDest )
-    {
-        // ERROR: Unable to open WinCE file
-        printf("ERROR: CeCreateFile(%ls) - %08lx\n", dstname, CeGetLastError());
-        return FALSE;
-    }
-
-    // Copying srcfile to WCE: dstname
-    do
-    {
-        if (ReadFile( hSrc, buffer, sizeof(buffer), &dwNumRead, NULL))
-        {
-            if (!CeWriteFile( hDest, buffer, dwNumRead, &dwNumWritten, NULL))
-            {
-                printf("ERROR: CeWriteFile - %08lx\n", CeGetLastError());
-                // ERROR: Writing WinCE file
-                CeCloseHandle( hDest);
-                CloseHandle (hSrc);
-                return FALSE;
-            }
-        }
-        else
-        {
-            printf("ERROR: ReadFile - %08lx\n", CeGetLastError());
-            // ERROR: Reading source file
-            CeCloseHandle( hDest);
-            CloseHandle (hSrc);
-            return FALSE;
-        }
-    } while (dwNumRead);
-    CeCloseHandle( hDest);
-    CloseHandle (hSrc);
-    return TRUE;
+    LocalFree(Address);
 }
 
-BOOL WaitForDevice()
-{
-    char *szTitle= "CompressUtils";
-    RAPIINIT rinit; 
-    rinit.cbSize= sizeof(RAPIINIT);
-    rinit.heRapiInit= NULL;
-    rinit.hrRapiInit= -1;
-    if (CeRapiInitEx(&rinit))
-    {
-        printf("ERROR: CeRapiInitEx - %08lx\n", GetLastError());
-        // ERROR initializing rapi
-        return FALSE;
-    }
-
-    while (TRUE)
-    {
-        // msgwait is used to be able to handle windows messages while waiting.
-        DWORD res= MsgWaitForMultipleObjects(1, &rinit.heRapiInit, FALSE, 1000, 0);
-        if (res==WAIT_OBJECT_0)
-            break;
-
-        if (res!=WAIT_TIMEOUT)
-        {
-            printf("ERROR: MsgWaitForMultipleObjects - %08lx\n", GetLastError());
-            // ERROR waiting for rapi init
-            return FALSE;
-        }
-        res= MessageBox(0, "Please connect your XDA to activesync", szTitle, MB_RETRYCANCEL);
-        if (res==IDCANCEL)
-        {
-            // User decided not to connect
-            return FALSE;
-        }
-    }
-    if (rinit.hrRapiInit)
-    {
-        printf("timeout waiting for device\n");
-        // ERROR connecting to XDA
-        return FALSE;
-    }
-    return TRUE;
-}
-
-char *GetAppPath()
-{
-    static char appname[1024];
-    int i;
-    if (!GetModuleFileName(NULL, appname, 1024))
-        return NULL;
-    for (i=strlen(appname)-1 ; i>=0 ; i--)
-        if (appname[i]=='\\' || appname[i]=='/')
-            break;
-    appname[i]= 0;
-
-    return appname;
-}
-
-BOOL CheckITSDll()
-{
-    char *dllpath;
-    if (!WaitForDevice())
-    {
-        printf("Could not connect to device\n");
-        return FALSE;
-    }
-    dllpath= GetAppPath();
-    strcat(dllpath, "\\itsutils.dll");
-    if (!CeCopyFileToDevice(dllpath, "\\windows"))
-    {
-        printf("ERROR copying itsutils.dll to device\n");
-        return FALSE;
-    }
-    return TRUE;
-}
 #define ITSCOMP_XPR_DECODE 0
 #define ITSCOMP_XPR_ENCODE 1
 #define ITSCOMP_LZX_DECODE 2
 #define ITSCOMP_LZX_ENCODE 3
-typedef struct _tagCompressParams {
-    DWORD dwType;       // lzx/xpr compress/decompress
-    DWORD dwMaxBlockSize;   // from volume header ... fixed to 0x1000 for now
-    DWORD outlength;
-    DWORD insize;
-    BYTE  data[1];
-} CompressParams;
-typedef struct _tagCompressResult {
-    DWORD outlength;
-    BYTE  data[1];
-} CompressResult;
 
+BOOL DoCompressConvert(int dwType, DWORD dwMaxBlockSize, SV*out, DWORD outlength, BYTE *data, DWORD insize)
+{
+    dMY_CXT;
+    DWORD stream;
+    DWORD res;
+
+    FNCompressOpen CompressOpen= NULL;
+    FNCompressConvert CompressConvert= NULL;
+    FNCompressClose CompressClose= NULL;
+
+    if (MY_CXT.hDllnt==NULL)
+        return FALSE;
+    switch(dwType) {
+    case ITSCOMP_XPR_DECODE:
+        CompressOpen= MY_CXT.XPR_DecompressOpen;
+        CompressConvert= MY_CXT.XPR_DecompressDecode;
+        CompressClose= MY_CXT.XPR_DecompressClose;
+        break;
+    case ITSCOMP_XPR_ENCODE:
+        CompressOpen= MY_CXT.XPR_CompressOpen;
+        CompressConvert= MY_CXT.XPR_CompressEncode;
+        CompressClose= MY_CXT.XPR_CompressClose;
+        break;
+    case ITSCOMP_LZX_DECODE:
+        CompressOpen= MY_CXT.LZX_DecompressOpen;
+        CompressConvert= MY_CXT.LZX_DecompressDecode;
+        CompressClose= MY_CXT.LZX_DecompressClose;
+        break;
+    case ITSCOMP_LZX_ENCODE:
+        CompressOpen= MY_CXT.LZX_CompressOpen;
+        CompressConvert= MY_CXT.LZX_CompressEncode;
+        CompressClose= MY_CXT.LZX_CompressClose;
+        break;
+    }
+    if (CompressOpen==NULL || CompressConvert==NULL || CompressClose==NULL) {
+        return FALSE;
+    }
+    stream= CompressOpen(0x10000, dwMaxBlockSize, Compress_AllocFunc, Compress_FreeFunc, 0);
+    if (stream==NULL || stream==0xFFFFFFFF) {
+        return FALSE;
+    }
+
+    res= CompressConvert(stream, SvPV_nolen(out), outlength, data, insize);
+    if (res==0 || res==0xffffffff) {
+        CompressClose(stream);
+        return FALSE;
+    }
+
+    SvCUR_set(out, res);
+
+    CompressClose(stream);
+    return TRUE;
+}
 SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 {
     SV *result= NULL;
     DWORD res= 0;
-    int insize= sizeof(CompressParams)+length;
-    CompressParams *inbuf= NULL;
-    DWORD outsize=0;
-    CompressResult *outbuf=NULL;
+    DWORD dwMaxBlockSize= 0x1000;
 
     if (length==0) return &PL_sv_undef;
-    if (!CheckITSDll())
-        return &PL_sv_undef;
 
-    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    memcpy(inbuf->data, data, length);
-    inbuf->dwType= ITSCOMP_XPR_DECODE;
-    inbuf->dwMaxBlockSize= 0x1000;
-    inbuf->insize= length;
-    inbuf->outlength= outlength;
-    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
-    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
-            insize, (BYTE*)inbuf,
-            &outsize, (BYTE**)&outbuf, NULL, 0);
-    if (res || outbuf==NULL) {
-        //printf("le=%08lx re=%08lx ce=%08lx res=%08lx\n", GetLastError(), CeRapiGetError(), CeGetLastError(), res);
-        return &PL_sv_undef;
+    if (!DoCompressConvert(ITSCOMP_XPR_DECODE, dwMaxBlockSize, result, outlength, data, length)) {
+        sv_setsv(result, &PL_sv_undef);
     }
-
-    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
-    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
-
-    LocalFree(outbuf);
     return result;
 }
 
@@ -594,110 +469,47 @@ SV* XPR_CompressEncode(const unsigned char *data, int length)
 {
     SV *result= NULL;
     DWORD res= 0;
-    int insize= sizeof(CompressParams)+length;
-    CompressParams *inbuf= NULL;
-    DWORD outsize=0;
-    CompressResult *outbuf=NULL;
+    DWORD dwMaxBlockSize= 0x1000;
 
     if (length==0) return &PL_sv_undef;
 
-    if (!CheckITSDll())
-        return &PL_sv_undef;
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
-
-    memcpy(inbuf->data, data, length);
-    inbuf->dwType= ITSCOMP_XPR_ENCODE;
-    inbuf->dwMaxBlockSize= 0x1000;
-    inbuf->insize= length;
-    inbuf->outlength= length-1;
-    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
-    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
-            insize, (BYTE*)inbuf,
-            &outsize, (BYTE**)&outbuf, NULL, 0);
-    if (res || outbuf==NULL) {
-        return &PL_sv_undef;
+    if (!DoCompressConvert(ITSCOMP_XPR_ENCODE, dwMaxBlockSize, result, length-1, data, length)) {
+        sv_setsv(result, &PL_sv_undef);
     }
-
-    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
-    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
-
-    LocalFree(outbuf);
     return result;
 }
-
 SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 {
     SV *result= NULL;
     DWORD res= 0;
-    int insize= sizeof(CompressParams)+length;
-    CompressParams *inbuf= NULL;
-    DWORD outsize=0;
-    CompressResult *outbuf=NULL;
+    DWORD dwMaxBlockSize= 0x1000;
 
     if (length==0) return &PL_sv_undef;
 
-    if (!CheckITSDll())
-        return &PL_sv_undef;
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
-
-    memcpy(inbuf->data, data, length);
-    inbuf->dwType= ITSCOMP_LZX_DECODE;
-    inbuf->dwMaxBlockSize= 0x1000;
-    inbuf->insize= length;
-    inbuf->outlength= outlength;
-    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
-    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
-            insize, (BYTE*)inbuf,
-            &outsize, (BYTE**)&outbuf, NULL, 0);
-    if (res || outbuf==NULL) {
-        return &PL_sv_undef;
+    if (!DoCompressConvert(ITSCOMP_LZX_DECODE, dwMaxBlockSize, result, outlength, data, length)) {
+        sv_setsv(result, &PL_sv_undef);
     }
-
-    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
-    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
-
-    LocalFree(outbuf);
     return result;
 }
-
 SV* LZX_CompressEncode(const unsigned char *data, int length)
 {
     SV *result= NULL;
     DWORD res= 0;
-    int insize= sizeof(CompressParams)+length;
-    CompressParams *inbuf= NULL;
-    DWORD outsize=0;
-    CompressResult *outbuf=NULL;
+    DWORD dwMaxBlockSize= 0x1000;
 
     if (length==0) return &PL_sv_undef;
 
-    if (!CheckITSDll())
-        return &PL_sv_undef;
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    inbuf= (CompressParams*)LocalAlloc(LPTR, insize);
-
-    memcpy(inbuf->data, data, length);
-    inbuf->dwType= ITSCOMP_LZX_ENCODE;
-    inbuf->dwMaxBlockSize= 0x1000;
-    inbuf->insize= length;
-    inbuf->outlength= length-1;
-    //printf("xprlzx(%d, %08lx, %08lx)\n", inbuf->dwType, inbuf->insize, inbuf->outlength);
-    res= CeRapiInvoke(L"\\Windows\\ItsUtils.dll", L"ITS_XPRLZX_Compress",
-            insize, (BYTE*)inbuf,
-            &outsize, (BYTE**)&outbuf, NULL, 0);
-    if (res || outbuf==NULL) {
-        return &PL_sv_undef;
+    if (!DoCompressConvert(ITSCOMP_LZX_ENCODE, dwMaxBlockSize, result, length-1, data, length)) {
+        sv_setsv(result, &PL_sv_undef);
     }
-
-    result= newSV(outbuf->outlength); SvPOK_on(result); SvCUR_set(result, outbuf->outlength);
-    memcpy(SvPV_nolen(result), outbuf->data, outbuf->outlength);
-
-    LocalFree(outbuf);
     return result;
 }
-
 
 MODULE = XdaDevelopers::CompressUtils   PACKAGE = XdaDevelopers::CompressUtils
 
@@ -744,11 +556,12 @@ BOOT:
     MY_CXT.compress4= NULL;
     MY_CXT.decompress4= NULL;
     MY_CXT.hDll4= LoadLibrary("CECompressv4.dll");
-    if (MY_CXT.hDll4) {
+    if (MY_CXT.hDll4!=NULL && MY_CXT.hDll4!=INVALID_HANDLE_VALUE) {
         MY_CXT.compress4= (CECOMPRESS)GetProcAddress(MY_CXT.hDll4, "CECompress");
         MY_CXT.decompress4= (CEDECOMPRESS)GetProcAddress(MY_CXT.hDll4, "CEDecompress");
     }
     else {
+        MY_CXT.hDll4= NULL;
         printf("%08lx: failed to load dll4\n", GetLastError());
     }
 
@@ -756,12 +569,45 @@ BOOT:
     MY_CXT.decompress3= NULL;
     MY_CXT.decompressRom3= NULL;
     MY_CXT.hDll3= LoadLibrary("CECompressv3.dll");
-    if (MY_CXT.hDll3) {
+    if (MY_CXT.hDll3!=NULL && MY_CXT.hDll3!=INVALID_HANDLE_VALUE) {
         MY_CXT.compress3= (CECOMPRESS)GetProcAddress(MY_CXT.hDll3, "CECompress");
         MY_CXT.decompress3= (CEDECOMPRESS)GetProcAddress(MY_CXT.hDll3, "CEDecompress");
         MY_CXT.decompressRom3= (CEDECOMPRESS)GetProcAddress(MY_CXT.hDll3, "CEDecompressROM");
     }
     else {
+        MY_CXT.hDll3= NULL;
         printf("%08lx: failed to load dll3\n", GetLastError());
+    }
+
+    MY_CXT.LZX_CompressClose= NULL;
+    MY_CXT.LZX_CompressEncode= NULL;
+    MY_CXT.LZX_CompressOpen= NULL;
+    MY_CXT.LZX_DecompressClose= NULL;
+    MY_CXT.LZX_DecompressDecode= NULL;
+    MY_CXT.LZX_DecompressOpen= NULL;
+    MY_CXT.XPR_CompressClose= NULL;
+    MY_CXT.XPR_CompressEncode= NULL;
+    MY_CXT.XPR_CompressOpen= NULL;
+    MY_CXT.XPR_DecompressClose= NULL;
+    MY_CXT.XPR_DecompressDecode= NULL;
+    MY_CXT.XPR_DecompressOpen= NULL;
+    MY_CXT.hDllnt= LoadLibrary("cecompr_nt.dll");
+    if (MY_CXT.hDllnt!=NULL && MY_CXT.hDllnt!=INVALID_HANDLE_VALUE) {
+        MY_CXT.LZX_CompressClose= (FNCompressClose)GetProcAddress(MY_CXT.hDllnt, "LZX_CompressClose");
+        MY_CXT.LZX_CompressEncode= (FNCompressConvert)GetProcAddress(MY_CXT.hDllnt, "LZX_CompressEncode");
+        MY_CXT.LZX_CompressOpen= (FNCompressOpen)GetProcAddress(MY_CXT.hDllnt, "LZX_CompressOpen");
+        MY_CXT.LZX_DecompressClose= (FNCompressClose)GetProcAddress(MY_CXT.hDllnt, "LZX_DecompressClose");
+        MY_CXT.LZX_DecompressDecode= (FNCompressConvert)GetProcAddress(MY_CXT.hDllnt, "LZX_DecompressDecode");
+        MY_CXT.LZX_DecompressOpen= (FNCompressOpen)GetProcAddress(MY_CXT.hDllnt, "LZX_DecompressOpen");
+        MY_CXT.XPR_CompressClose= (FNCompressClose)GetProcAddress(MY_CXT.hDllnt, "XPR_CompressClose");
+        MY_CXT.XPR_CompressEncode= (FNCompressConvert)GetProcAddress(MY_CXT.hDllnt, "XPR_CompressEncode");
+        MY_CXT.XPR_CompressOpen= (FNCompressOpen)GetProcAddress(MY_CXT.hDllnt, "XPR_CompressOpen");
+        MY_CXT.XPR_DecompressClose= (FNCompressClose)GetProcAddress(MY_CXT.hDllnt, "XPR_DecompressClose");
+        MY_CXT.XPR_DecompressDecode= (FNCompressConvert)GetProcAddress(MY_CXT.hDllnt, "XPR_DecompressDecode");
+        MY_CXT.XPR_DecompressOpen= (FNCompressOpen)GetProcAddress(MY_CXT.hDllnt, "XPR_DecompressOpen");
+    }
+    else {
+        MY_CXT.hDllnt= NULL;
+        printf("%08lx: failed to load dllnt\n", GetLastError());
     }
 }
