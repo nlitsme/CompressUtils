@@ -11,8 +11,8 @@ WriteMakefile(
 	'clean' => {FILES => ''},
     'EXE_FILES' => [ qw(cecompr_nt.dll CECompressv3.dll CECompressv4.dll) ],
 
-    # current problem: symbol name mismatch: in lib: _GetLastError@0, in object: _GetLastError
-    'LDFROM' => 'nkcompr$(LIB_EXT) cecompress$(LIB_EXT) $(BASEEXT)$(OBJ_EXT)',
+    # .. only using dll's
+    #'LDFROM' => 'nkcompr$(LIB_EXT) cecompress$(LIB_EXT) $(BASEEXT)$(OBJ_EXT)',
     'LIBS' => [ '-L/usr/lib/w32api -lkernel32' ],
 );
 

@@ -99,7 +99,7 @@ typedef struct {
                                                  
 START_MY_CXT
 
-
+#if _WITH_LIBS
 // ............................................................
 // functions interfacing with nkcompr.lib
 DWORD CEDecompressROM(const LPBYTE BufIn, DWORD InSize, LPBYTE BufOut, DWORD OutSize, DWORD skip, DWORD n, DWORD blocksize);
@@ -169,7 +169,7 @@ SV* romuncompress_v5(const unsigned char *data, int length, int outlength)
 
     return result;
 }
-
+#endif
 // .........................................................
 // interface to cecompressv3.dll
 //
@@ -257,6 +257,7 @@ SV* rom4uncompress(const unsigned char *data, int length, int outlength)
     return result;
 }
 
+#ifdef _WITH_LIBS
 // ..................................................................
 // functions interfacing with CeCompress.lib
 #define CECOMPRESS_MAX_BLOCK_LOG 16
@@ -378,7 +379,7 @@ SV* DoXpressEncode(const unsigned char *data, int length)
     return result;
 
 }
-
+#endif
 // ....................................................................
 // interface to cecompr_nt.dll
 
@@ -523,6 +524,8 @@ MODULE = XdaDevelopers::CompressUtils   PACKAGE = XdaDevelopers::CompressUtils
 
 PROTOTYPES: DISABLE
 
+#if _WITH_LIBS
+
 SV* romcompress_v3(unsigned char *data, int length(data))
 
 SV* romuncompress_v3(unsigned char *data, int length(data), U32 outlength)
@@ -530,6 +533,8 @@ SV* romuncompress_v3(unsigned char *data, int length(data), U32 outlength)
 SV* romuncompress_v4(unsigned char *data, int length(data), U32 outlength)
 
 SV* romuncompress_v5(unsigned char *data, int length(data), U32 outlength)
+
+#endif
 
 SV* rom3uncompressRom(unsigned char *data, int length(data), U32 outlength)
 
@@ -541,6 +546,8 @@ SV* rom4uncompress(unsigned char *data, int length(data), U32 outlength)
 
 SV* rom4compress(unsigned char *data, int length(data))
 
+#if _WITH_LIBS
+
 SV* DoCeCompressDecode(unsigned char *data, int length(data), U32 outlength)
 
 SV* DoCeCompressEncode(unsigned char *data, int length(data))
@@ -548,6 +555,8 @@ SV* DoCeCompressEncode(unsigned char *data, int length(data))
 SV* DoXpressDecode(unsigned char *data, int length(data), U32 outlength)
 
 SV* DoXpressEncode(unsigned char *data, int length(data))
+
+#endif
 
 SV* XPR_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
 

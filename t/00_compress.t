@@ -9,7 +9,7 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..39\n"; }
+BEGIN { $|=1; print "1..27\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
@@ -25,7 +25,7 @@ my $uncompressed4= pack("H*", "3c7374696e6765722d636f6e74726f6c70616e656c2d646f6
 #testdecompress("rom3uncompress",  $compressed4, $uncompressed4, 1);
 testdecompress("rom4uncompress",  $compressed4, $uncompressed4, 1);
 #testdecompress("romuncompress_v3",  $compressed4, $uncompressed4);
-testdecompress("romuncompress_v4",  $compressed4, $uncompressed4, 1);
+#NOLIBS - testdecompress("romuncompress_v4",  $compressed4, $uncompressed4, 1);
 #testdecompress("romuncompress_v5",  $compressed4, $uncompressed4);
 testdecompress("rom3uncompressRom", $compressed4, $uncompressed4, 1);
 #testdecompress("DoCeCompressDecode",$compressed4, $uncompressed4);
@@ -41,7 +41,7 @@ my $uncompressed5_xpr= pack("H*", "424d86000000000000004600000028000000100000001
 #testdecompress("romuncompress_v4",  $compressed5_xpr, $uncompressed5_xpr);
 #testdecompress("romuncompress_v5",  $compressed5_xpr, $uncompressed5_xpr);
 #testdecompress("rom3uncompressRom", $compressed5_xpr, $uncompressed5_xpr);
-testdecompress("DoCeCompressDecode",$compressed5_xpr, $uncompressed5_xpr);
+#NOLIBS - testdecompress("DoCeCompressDecode",$compressed5_xpr, $uncompressed5_xpr);
 testdecompress("XPR_DecompressDecode",$compressed5_xpr, $uncompressed5_xpr);
 
 print "\n ... with 5 LZX data ... \n";
@@ -64,10 +64,10 @@ testdecompress("LZX_DecompressDecode",$compressed5_lzx2, $uncompressed5_lzx2);
 print "\n ... testing function pairs ... \n";
 
 
-testpair(qw(romuncompress_v3 romcompress_v3), $uncompressed4, 1);
+#NOLIBS - testpair(qw(romuncompress_v3 romcompress_v3), $uncompressed4, 1);
 testpair(qw(rom3uncompress rom3compress), $uncompressed4, 1);
 testpair(qw(rom4uncompress rom4compress), $uncompressed4, 1);
-testpair(qw(DoCeCompressDecode DoCeCompressEncode), $uncompressed4, 0);
+#NOLIBS - testpair(qw(DoCeCompressDecode DoCeCompressEncode), $uncompressed4, 0);
 testpair(qw(LZX_DecompressDecode LZX_CompressEncode), $uncompressed5_lzx, 0);
 testpair(qw(XPR_DecompressDecode XPR_CompressEncode), $uncompressed5_xpr, 0);
 
