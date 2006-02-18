@@ -9,12 +9,27 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..27\n"; }
+BEGIN { $|=1; print "1..29\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
 print "ok $t\n";
 $t++;
+
+print "\n ... with 3 data ... \n";
+my $compressed3_a = pack("H*", "500000430000a0deaa0000021101030000010073796e632e610076616e74676f2e63406f6d0050000001007a414301479501560204020102781e1ef0a300b303010100");
+my $uncompressed3_a=pack("H*", "deaa000002000001deaa0000010073796e632e6176616e74676f2e636f6d005000000000004176616e74476f2e636f6d004176616e74476f00000000000000021e1ef000000100000000000000000000");
+testdecompress("rom3uncompress",  $compressed3_a, $uncompressed3_a);
+#testdecompress("rom4uncompress",  $compressed3, $uncompressed3, 1);
+#testdecompress("romuncompress_v3",  $compressed3, $uncompressed3);
+#testdecompress("romuncompress_v4",  $compressed3, $uncompressed3, 1);
+#testdecompress("romuncompress_v5",  $compressed3, $uncompressed3);
+#testdecompress("rom3uncompressRom", $compressed3, $uncompressed3, 1);
+#testdecompress("DoCeCompressDecode",$compressed3, $uncompressed3);
+
+my $compressed3_b = pack("H*", "4800003e0000003010c30001140040d2801200021c61f09200f1a961181122002861b893014a0c61e816021812a20235a561ec1203000461fc9303020261");
+my $uncompressed3_b=pack("H*", "3010C300011400408010C300021C0040F010C300000100401811C30001280040B811C300010C0040E811C300010C00401812C30001350040EC12C30000040040FC12C30000020040");
+testdecompress("rom3uncompress",  $compressed3_b, $uncompressed3_b);
 
 print "\n ... with 4 data ... \n";
 
@@ -87,7 +102,7 @@ sub testdecompress {
     $t++;
 
     if (!defined $test1) {
-        print "not ok $t\n"; 
+        print "not ok $t - decompress value undef\n"; 
         $t++;
     }
     else {
