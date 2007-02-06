@@ -9,7 +9,7 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..29\n"; }
+BEGIN { $|=1; print "1..31\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
