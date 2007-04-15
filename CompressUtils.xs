@@ -1,5 +1,9 @@
 /*
-    # (C) 2005 XDA Developers  itsme@xs4all.nl
+    # (C) 2003-2007 Willem Jan Hengeveld <itsme@xs4all.nl>
+    # Web: http://www.xs4all.nl/~itsme/
+    #      http://wiki.xda-developers.com/
+    #
+    # $Id$
     #
     # CompressUtils - utility functions for rom compression
     #
