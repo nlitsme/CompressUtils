@@ -7,3 +7,6 @@ t/00_compress.t
 CECompressv3.dll
 CECompressv4.dll
 cecompr_nt.dll
+dllloader.cpp
+dllloader.h
+wintypes.h

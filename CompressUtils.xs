@@ -12,24 +12,19 @@
     # Author: Willem Hengeveld <itsme@xs4all.nl>
  */
 
+// todo: add FreeLibrary on unload
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 #define CROAK croak
 
 #ifndef _MSC_VER
+#ifdef __CYGWIN__
 #include <windows.h>
-//#define PVOID void*
-//#define LPVOID void*
-//#define LPCVOID const void*
-//#define LPBYTE unsigned char*
-//#define VOID void
-//#define DWORD unsigned long
-//#define PDWORD unsigned long*
-//#define WORD unsigned short
-//#define BYTE unsigned char
-//#define HMODULE LPVOID
-//#define HANDLE LPVOID
+#else
+#include "dllloader.h"
+#endif
 #endif
 
 #pragma optimize("", off)
@@ -389,7 +384,7 @@ SV* DoXpressEncode(const unsigned char *data, int length)
 
 LPVOID Compress_AllocFunc(DWORD AllocSize)
 {
-    LPVOID p= LocalAlloc(LPTR, AllocSize);
+    LPVOID p= malloc(AllocSize);
 
     //printf("Compress_AllocFunc(%08lx) -> %08lx\n", AllocSize, p);
 
@@ -398,7 +393,7 @@ LPVOID Compress_AllocFunc(DWORD AllocSize)
 VOID Compress_FreeFunc(LPVOID Address)
 {
     //printf("Compress_FreeFunc(%08lx)\n", Address);
-    LocalFree(Address);
+    free(Address);
 }
 
 #define ITSCOMP_XPR_DECODE 0
