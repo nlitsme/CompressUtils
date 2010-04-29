@@ -1,0 +1,15 @@
+#ifndef __COMPRESS_IPC_H__
+#define __COMPRESS_IPC_H__
+#include <stdint.h>
+enum { ITSCOMP_XPR_DECODE, ITSCOMP_XPR_ENCODE, ITSCOMP_LZX_DECODE, ITSCOMP_LZX_ENCODE, ITSCOMP_ROM3_DECODE, ITSCOMP_ROM3_ENCODE, ITSCOMP_ROM4_DECODE, ITSCOMP_ROM4_ENCODE };
+struct compressrequest {
+        uint32_t dwType;
+        uint32_t outlength;
+        uint32_t insize;
+        uint8_t data[65536];
+};
+struct compressresult {
+        uint32_t resultLen;
+        uint8_t out[65536];
+};
+#endif

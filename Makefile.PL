@@ -19,11 +19,20 @@ if ($^O eq 'cygwin') {
     $args{LIBS} = [ '-L/usr/lib/w32api -lkernel32' ];
 }
 elsif ($^O eq 'darwin') {
-    $args{OBJECT} = '$(BASEEXT)$(OBJ_EXT)  dllloader$(OBJ_EXT)';
+    $args{CC}='g++';
+    $args{OBJECT} = '$(BASEEXT)$(OBJ_EXT)';
+    #   dllloader$(OBJ_EXT) -- only when !use64bitall
     $args{LIBS} = [ '-lstdc++.6' ];
-    $args{CCFLAGS} = '-mstackrealign';
+# todo: figure out how to distinguish between 64bit and 32bit osx
+    #    -mstackrealign is only needed for 32bit osx
+    # to build 32bit binaries: add -m32
+    $args{CCFLAGS} .= ' -DUSE_POPEN';
+#   $args{CCFLAGS} .= ' -mstackrealign -m32';
+#   $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
 }
-# else: MSWin32
+elsif ($^O eq 'MSWin32') {
+    $args{CCFLAGS} .= ' -TP -DWIN32';
+}
 
 WriteMakefile(%args);
 

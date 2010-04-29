@@ -2,7 +2,7 @@
 # vim: ft=perl
 # (C) 2005 XDA Developers  itsme@xs4all.nl
 use strict;
-
+$|=1;
 # NOTE: the commented out tests were there for experimenting, they are expected to fail
 #
 my $loaded;
@@ -39,10 +39,11 @@ my $uncompressed4= pack("H*", "3c7374696e6765722d636f6e74726f6c70616e656c2d646f6
 
 #testdecompress("rom3uncompress",  $compressed4, $uncompressed4, 1);
 testdecompress("rom4uncompress",  $compressed4, $uncompressed4, 1);
+testdecompress("rom4uncompress",  $compressed4, $uncompressed4, 1);
 #testdecompress("romuncompress_v3",  $compressed4, $uncompressed4);
 #NOLIBS - testdecompress("romuncompress_v4",  $compressed4, $uncompressed4, 1);
 #testdecompress("romuncompress_v5",  $compressed4, $uncompressed4);
-testdecompress("rom3uncompressRom", $compressed4, $uncompressed4, 1);
+#testdecompress("rom3uncompressRom", $compressed4, $uncompressed4, 1);  <-- no longer supported
 #testdecompress("DoCeCompressDecode",$compressed4, $uncompressed4);
 
 print "\n ... with 5 XPR data ... \n";
