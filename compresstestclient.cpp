@@ -1,6 +1,8 @@
+#include <stdio.h>
+#include "stringutils.h"
 #include "win32compress_client.h"
 struct compresstest {
-    uint32_t enctype;
+    uint32_t dectype;
     uint32_t clen;
     uint8_t cdata[0x2000];
     uint32_t ulen;
@@ -42,18 +44,27 @@ int main(int,char**)
     {
         fprintf(stderr, "test %d\n", i);
         compresstest& t= tests[i];
-        uint8_t out[0x2000];
-        DWORD cres= svr.DoCompressConvert(t.enctype, out, 0x2000, t.udata, t.ulen);
-        if (cres!=t.clen)
-            printf("clen mismatch: %d iso %d\n", cres, t.clen);
-        else if (memcmp(out, t.cdata, cres))
-            printf("cdata mismatch\n");
+        uint8_t out[0x2000]; memset(out, 0, 0x2000);
+        DWORD ures= svr.DoCompressConvert(t.dectype, out, 0x2000, t.cdata, t.clen);
+        if (ures!=t.ulen) {
+            fprintf(stderr,"ulen mismatch: %d iso %d\n", ures, t.ulen);
+            fprintf(stderr,"svr:%s\nreal:%s\n", hexdump(out, t.ulen).c_str(), hexdump(t.udata, t.ulen).c_str());
+        }
+        else if (memcmp(out, t.udata, ures)) {
+            fprintf(stderr,"cdata mismatch\n");
+            fprintf(stderr,"svr:%s\nreal:%s\n", hexdump(out, t.ulen).c_str(), hexdump(t.udata, t.ulen).c_str());
+        }
 
-        DWORD ures= svr.DoCompressConvert(t.enctype+1, out, 0x2000, t.cdata, t.clen);
-        if (ures!=t.ulen)
-            printf("ulen mismatch: %d iso %d\n", ures, t.ulen);
-        else if (memcmp(out, t.udata, ures))
-            printf("udata mismatch\n");
+        memset(out, 0, 0x2000);
+        DWORD cres= svr.DoCompressConvert(t.dectype+1, out, 0x2000, t.udata, t.ulen);
+        if (cres!=t.clen) {
+            fprintf(stderr,"clen mismatch: %d iso %d\n", cres, t.clen);
+            fprintf(stderr,"svr:%s\nreal:%s\n", hexdump(out, t.clen).c_str(), hexdump(t.cdata, t.clen).c_str());
+        }
+        else if (memcmp(out, t.cdata, cres)) {
+            fprintf(stderr,"cdata mismatch\n");
+            fprintf(stderr,"svr:%s\nreal:%s\n", hexdump(out, t.clen).c_str(), hexdump(t.cdata, t.clen).c_str());
+        }
     }
     return 0;
 }

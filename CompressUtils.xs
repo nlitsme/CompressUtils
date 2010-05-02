@@ -17,7 +17,7 @@
 #include "XSUB.h"
 #define CROAK croak
 
-#include "compress_ipc.h"
+#include "compress_msgs.h"
 
 #ifdef __LP64__
 #include "win32compress_client.h"

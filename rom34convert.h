@@ -5,20 +5,12 @@
 #include "wintypes.h"
 #include "dllloader.h"
 #endif
-#include "compress_ipc.h"
+#include "compress_msgs.h"
+#include "stringutils.h"
+
+#define rom34trace(...)
 
 class rom34convert {
-
-    char*hexdump(const unsigned char*p, size_t n)
-    {
-        static char buf[65536];
-        char *pbuf= buf;
-
-        while (n--)
-            pbuf += sprintf(pbuf, " %02x", *p++);
-
-        return buf;
-    }
 
 // prototypes of cecompressv3.dll and cecompressv4.dll
 typedef DWORD (*CECOMPRESS)(const unsigned char *lpbSrc, DWORD cbSrc, LPBYTE lpbDest, DWORD cbDest, WORD wStep, DWORD dwPagesize);
@@ -72,31 +64,47 @@ public:
     DWORD DoCompressConvert(int dwType, BYTE*out, DWORD outlength, const BYTE *in, DWORD insize)
     {
         DWORD res;
-//      fprintf(stderr, "%d->\nin: %s\n", dwType, hexdump(in, insize));
+//      rom34trace("%d->\nin: %s\n", dwType, hexdump(in, insize).c_str());
         switch(dwType) {
         case ITSCOMP_ROM3_DECODE:
+            rom34trace("rom34:dec3(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
+            rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= decompress3(in, insize, out, outlength, 0, 1, 4096);
+            if (res!=-1)
+            rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
         case ITSCOMP_ROM3_ENCODE:
+            rom34trace("rom34:enc3(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
+            rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= compress3(in, insize, out, outlength, 1, 4096);
+            if (res!=-1)
+            rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
         case ITSCOMP_ROM4_DECODE:
+            rom34trace("rom34:dec4(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
+            rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= decompress4(in, insize, out, outlength, 0, 1, 4096);
+            if (res!=-1)
+            rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
         case ITSCOMP_ROM4_ENCODE:
+            rom34trace("rom34:enc4(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
+            rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= compress4(in, insize, out, outlength, 1, 4096);
+            if (res!=-1)
+            rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
         default:
             fprintf(stderr,"rom34cv: unknown type: %d\n", dwType);
             return 0xFFFFFFFF;
         }
-//      fprintf(stderr, "->%08x\n", res);
+//      rom34trace("->%08x\n", res);
 //      if (res>0 && res<0x10000)
-//          fprintf(stderr, "out: %s\n", hexdump(out, res));
+//          rom34trace("out: %s\n", hexdump(out, res).c_str());
         return res;
     }
 };

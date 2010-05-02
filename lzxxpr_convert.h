@@ -7,20 +7,14 @@
 #include "wintypes.h"
 #include "dllloader.h"
 #endif
-#include "compress_ipc.h"
+#include "compress_msgs.h"
+#include "stringutils.h"
+
+//#define lzxxprtrace(...) fprintf(stderr, __VA_ARGS__)
+#define lzxxprtrace(...)
 
 class lzxxpr_convert {
 
-    char*hexdump(const unsigned char*p, size_t n)
-    {
-        static char buf[65536];
-        char *pbuf= buf;
-
-        while (n--)
-            pbuf += sprintf(pbuf, " %02x", *p++);
-
-        return buf;
-    }
 // prototypes of cecompr_nt.dll
 typedef LPVOID (*FNCompressAlloc)(DWORD AllocSize);
 typedef VOID (*FNCompressFree)(LPVOID Address);
@@ -84,10 +78,14 @@ public:
         in= new BYTE[0x2000];
         memcpy(in, data, insize);
 
+        lzxxprtrace("lzxxpr(%d):(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", dwType, in, insize, out, outlength);
+        lzxxprtrace("lzxxpr(%d):in :%s\n", dwType, hexdump(in, insize).c_str());
         res= CompressConvert(stream, out, outlength, in, insize);
+        if (res!=-1)
+        lzxxprtrace("lzxxpr(%d):out:%s\n", dwType, hexdump(out, res).c_str());
 //      fprintf(stderr, "->%08x\n", res);
 //      if (res>0 && res<0x10000)
-//          fprintf(stderr, "out: %s\n", hexdump(out, res));
+//          fprintf(stderr, "out: %s\n", hexdump(out, res).c_str());
 
         delete in;
 

@@ -5,15 +5,20 @@
 #include "wintypes.h"
 // note: see http://pstreams.sourceforge.net/  for a better bidirectional pipe
 
-#include "compress_ipc.h"
+#include "compress_msgs.h"
 
 #if defined(USE_POPEN)
-#include "popen_ipc.h"
+#include "popen_ipc_clt.h"
 #elif defined(USE_PSTREAM)
-#include "pstream_ipc.h"
+#include "pstream_ipc_clt.h"
 #elif defined(USE_SOCKET)
-#include "socket_ipc.h"
+#include "socket_ipc_clt.h"
+#elif defined(USE_PIPE)
+#include "pipe_ipc_clt.h"
 #endif
+
+#define ccltlog(...)
+
 class win32compress_client {
 #if defined(USE_POPEN)
     popen_ipc_client _ipc;
@@ -21,11 +26,27 @@ class win32compress_client {
     pstream_ipc_client _ipc;
 #elif defined(USE_SOCKET)
     socket_ipc_client _ipc;
+#elif defined(USE_PIPE)
+    pipe_ipc_client _ipc;
 #endif
 public:
-    win32compress_client()
+    std::string serverpath()
     {
-//      fprintf(stderr, "compressclient started server, reqsize=%d, ressize=%d\n", (int)sizeof(compressrequest), (int)sizeof(compressresult));
+        std::string prog= getprogname();
+        fprintf(stderr, "\n\n* %s", prog.c_str());
+        size_t ix= prog.find_last_of("/");
+        if (ix==std::string::npos)
+            return "./compressserver";
+        prog.resize(ix+1);
+        prog += "compressserver";
+        fprintf(stderr, " - %s\n\n", prog.c_str());
+            
+        return prog;
+    }
+    win32compress_client()
+        : _ipc(serverpath(), StringList())
+    {
+//      ccltlog("compressclient started server, reqsize=%d, ressize=%d\n", (int)sizeof(compressrequest), (int)sizeof(compressresult));
     }
     void loaddlls()
     {
@@ -52,13 +73,13 @@ public:
 
     bool makerequest(const compressrequest  &req, compressresult &result)
     {
-//      fprintf(stderr,"client: sending request : %d: %d bytes\n", req.dwType, req.insize);
+//      ccltlog("client: sending request : %d: %d bytes\n", req.dwType, req.insize);
         if (!_ipc.write(&req, sizeof(req)))
             return false;
-//      fprintf(stderr,"client: waiting for result\n");
+//      ccltlog("client: waiting for result\n");
         if (!_ipc.read(&result, sizeof(result)))
             return false;
-//      fprintf(stderr,"client: got result: %d bytes\n", result.resultLen);
+//      ccltlog("client: got result: %d bytes\n", result.resultLen);
         return true;
     }
 };
