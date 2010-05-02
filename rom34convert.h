@@ -8,6 +8,7 @@
 #include "compress_msgs.h"
 #include "stringutils.h"
 
+//#define rom34trace(...) fprintf(stderr,__VA_ARGS__)
 #define rom34trace(...)
 
 class rom34convert {

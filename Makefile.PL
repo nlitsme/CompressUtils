@@ -31,6 +31,9 @@ elsif ($^O eq 'darwin') {
     $args{CCFLAGS} .= ' -DUSE_PIPE -I ../../itsutils/common -I ../../itsutils/include/win32 -D_UNIX';
 #   $args{CCFLAGS} .= ' -mstackrealign -m32';
 #   $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
+
+
+    #todo: add make -f svr.mk clean
 }
 elsif ($^O eq 'MSWin32') {
     $args{CCFLAGS} .= ' -TP -DWIN32';

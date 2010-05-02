@@ -6,10 +6,8 @@ struct compressrequest {
         uint32_t dwType;
         uint32_t outlength;
         uint32_t insize;
-        uint8_t data[65536];
 };
 struct compressresult {
         uint32_t resultLen;
-        uint8_t out[65536];
 };
 #endif

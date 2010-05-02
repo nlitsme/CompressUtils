@@ -19,6 +19,7 @@
 #include "stdio_ipc_svr.h"
 #endif
 
+//#define csvrlog(...) fprintf(stderr, __VA_ARGS__)
 #define csvrlog(...)
 
 class win32compress_server {
@@ -52,10 +53,14 @@ public:
         if (!_ipc.read(&req, sizeof(req)))
             return false;
 
+        ByteVector indata(req.insize);
+        if (!_ipc.read(&indata[0], indata.size()))
+            return false;
+
         csvrlog("server: got request %d: %d bytes\n", req.dwType, req.insize);
 
         compressresult result;
-        memset(&result, 0, sizeof(result));
+        ByteVector outdata(req.outlength);
 
         switch(req.dwType)
         {
@@ -63,18 +68,20 @@ case ITSCOMP_XPR_DECODE:
 case ITSCOMP_XPR_ENCODE:
 case ITSCOMP_LZX_DECODE:
 case ITSCOMP_LZX_ENCODE:
-        result.resultLen= _lzxxpr.DoCompressConvert(req.dwType, result.out, req.outlength, req.data, req.insize);
+        result.resultLen= _lzxxpr.DoCompressConvert(req.dwType, &outdata[0], req.outlength, &indata[0], req.insize);
         break;
 case ITSCOMP_ROM3_DECODE:
 case ITSCOMP_ROM3_ENCODE:
 case ITSCOMP_ROM4_DECODE:
 case ITSCOMP_ROM4_ENCODE:
-        result.resultLen= _rom34.DoCompressConvert(req.dwType, result.out, req.outlength, req.data, req.insize);
+        result.resultLen= _rom34.DoCompressConvert(req.dwType, &outdata[0], req.outlength, &indata[0], req.insize);
         break;
         }
 
         csvrlog("server: sending reply %d bytes\n", result.resultLen);
         if (!_ipc.write(&result, sizeof(result)))
+            return false;
+        if (result.resultLen!=-1 && !_ipc.write(&outdata[0], result.resultLen))
             return false;
         return true;
     }

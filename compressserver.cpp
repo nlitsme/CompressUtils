@@ -3,7 +3,7 @@
 
 int main(int,char**)
 {
-    fprintf(stderr, "compressserver started\n");
+    //fprintf(stderr, "compressserver started\n");
     win32compress_server svr(STDOUT_FILENO,STDIN_FILENO);
 
     while(svr.server())
