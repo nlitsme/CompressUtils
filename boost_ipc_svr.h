@@ -10,13 +10,13 @@
 #include <boost/interprocess/sync/named_condition.hpp>
 
 #include "compress_shmem.h"
+#include "readwriter.h"
+#include "ipclog.h"
 
 namespace ipc= boost::interprocess;
 
-//#define ipclog(...) fprintf(stderr,__VA_ARGS__)
-#define ipclog(...)
 
-class boost_ipc_server {
+class boost_ipc_server : public readwriter {
     // note: mtx and cond must be named, you cannot share anon mutex between 32 and 64 bit app
     // note: this does not work either: internally they still use shmem
     ipc::named_mutex *_mtx;
@@ -45,7 +45,7 @@ public:
     ~boost_ipc_server()
     {
     }
-    size_t readsome(void*p, size_t n)
+    virtual size_t readsome(void*p, size_t n)
     {
         scopedlock lock(*_mtx);
 
@@ -64,7 +64,7 @@ public:
         }
         return wanted;
     }
-    size_t writesome(const void*p, size_t n)
+    virtual size_t writesome(const void*p, size_t n)
     {
         scopedlock lock(*_mtx);
         while (_mem->bufferstate!=BUF_UNUSED)
@@ -80,41 +80,6 @@ public:
         _cond->notify_one();
         return wanted;
     }
-
-    bool read(void*p, size_t n)
-    {
-        ipclog("server-reading %d\n", (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= readsome((char*)p+total, n-total);
-            if (r==-1) {
-                perror("svr-read");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("server-read %d\n", (int)n);
-        return true;
-    }
-    bool write(const void*p, size_t n)
-    {
-        ipclog("server-writing %d\n", (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= writesome((const char*)p+total, n-total);
-            if (r==-1)
-            {
-                perror("svr-write");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("server-wrote %d\n", (int)n);
-        return true;
-    }
-
 };
 
 #endif

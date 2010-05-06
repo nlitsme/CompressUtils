@@ -7,7 +7,7 @@ all: comp boost shmem rest
 
 BOOSTLDFLAGS=-L/opt/local/lib
 BOOSTCFLAGS=-I/opt/local/include
-CFLAGS=-Wall -g -I ../../itsutils/common -I ../../itsutils/common/threading -I ../../itsutils/include/win32 -D_UNIX -D_NO_WINDOWS -D_NO_RAPI
+CFLAGS=-Wall -O0 -g -I ../../itsutils/common -I ../../itsutils/common/threading -I ../../itsutils/include/win32 -D_UNIX -D_NO_WINDOWS -D_NO_RAPI
 CDEFS=-DUSE_SOCKET
 M32FLAG=-m32 -mstackrealign
 M64FLAG=-m64
@@ -122,7 +122,7 @@ runshmem: testshmemsvr32 testshmemsvr64 testshmem32 testshmem64
 
 
 clean:
-	$(RM) -f $(wildcard *.o *.obj *.exe) compressserver compresstestclient32  compresstestclient64  testpopen  testsocket  testpstreams  testpipe        teststdiosvr  testsocksvr  testboost32  testboostsvr32  testboost64  testboostsvr64   testshmem64 testshmemsvr64 testshmem32 testshmemsvr32    
+	$(RM) -f $(wildcard *.o *.obj *.exe) compressserver compresstestclient32  compresstestclient64  testpopen  testsocket  testpstreams  testpipe        teststdiosvr  testsocksvr  testboost32  testboostsvr32  testboost64  testboostsvr64   testshmem64 testshmemsvr64 testshmem32 testshmemsvr32      testboostsvr testshmemsvr
 
 
 tests:

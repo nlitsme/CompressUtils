@@ -2,23 +2,18 @@
 #define __PIPE_IPC_CLT_H__
 #include <stdio.h>
 #include <unistd.h>
-#include <signal.h>
 #include "stringutils.h"
 #include "posixerr.h"
+#include "readwriter.h"
+#include "forkchild.h"
+#include "ipclog.h"
 
-#define ipclog(...)
-//#define ipclog(...) fprintf(stderr,__VA_ARGS__)
 
-class pipe_ipc_client {
-    std::string _svrname;
-    StringList _args;
-
+class pipe_ipc_client : public readwriter, public fork_child {
     int _fds2c[2];
     int _fdc2s[2];
-    int _pid;
 public:
     pipe_ipc_client(const std::string& svrname, const StringList& args)
-        : _svrname(svrname), _args(args)
     {
         if (-1==pipe(_fds2c)) 
             throw posixerror("pipe-s2c");
@@ -26,14 +21,8 @@ public:
         if (-1==pipe(_fdc2s)) 
             throw posixerror("pipe-c2s");
         ipclog("c2s: %d, %d\n", _fdc2s[0], _fdc2s[1]);
-        _pid= fork();
-        if (-1==_pid) 
-            throw posixerror("fork");
-        if (_pid==0) {
-            ipclog("child(server)\n");
-            run_child();
-        }
-        ipclog("parent(client) ( svr=%d )\n", _pid);
+
+        run_child(svrname, args);
 
         // parent
 
@@ -42,9 +31,8 @@ public:
     }
     ~pipe_ipc_client()
     {
-        kill(_pid, SIGTERM);
     }
-    void run_child()
+    virtual void initialize_child()
     {
         if (-1==dup2(_fdc2s[0],STDIN_FILENO)) 
             throw posixerror("dup2(stdin)");
@@ -56,53 +44,16 @@ public:
         close(_fdc2s[1]);
         close(_fds2c[0]);
         close(_fds2c[1]);
-
-        // construct argv
-
-        char**argv= (char**)malloc((_args.size()+2)*sizeof(char*));
-        argv[0]= &_svrname[0];
-        for (unsigned i=0 ; i<_args.size() ; i++)
-            argv[i+1]= &_args[i][0];
-        argv[_args.size()+1]= 0;
-
-        execvp(_svrname.c_str(), argv);
-
-        throw posixerror("exec");
     }
-    bool read(void*p, size_t n)
-    {
-        ipclog("client-reading(%d) %d\n", _fds2c[0], (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= ::read(_fds2c[0], (char*)p+total, n-total);
-            if (r==-1) {
-                perror("clt-read");
-                return false;
-            }
-            total += r;
-        }
 
-        ipclog("clt:read\n");
-        return true;
+    virtual size_t readsome(void*p, size_t n)
+    {
+        return ::read(_fds2c[0], p, n);
     }
-    bool write(const void *p, size_t n)
-    {
-        ipclog("clt:writing %d\n", (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r=::write(_fdc2s[1], (const char*)p+total, n-total);
-            if (r==-1)
-            {
-                perror("clt-write");
-                return false;
-            }
-            total += r;
-        }
 
-        ipclog("clt:wrote\n");
-        return true;
+    virtual size_t writesome(const void*p, size_t n)
+    {
+        return ::write(_fdc2s[1], p, n);
     }
 };
 #endif

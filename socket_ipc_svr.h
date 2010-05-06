@@ -7,7 +7,9 @@
 #include <stdio.h>
 
 #include "posixerr.h"
-class socket_ipc_server {
+#include "readwriter.h"
+
+class socket_ipc_server : public readwriter {
     struct sockaddr_in _peer;
     int _s;
     int _a;
@@ -38,29 +40,14 @@ public:
         shutdown(_a, SHUT_RDWR);
         shutdown(_s, SHUT_RDWR);
     }
-    bool read(void*p, size_t n)
+    virtual size_t readsome(void*p, size_t n)
     {
-//      fprintf(stderr, "server-reading %d\n", n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= ::read(_a, (char*)p+total, n-total);
-            if (r==-1)
-                return false;
-            total += r;
-//          if (r)
-//              fprintf(stderr, "server-read %d of %d\n", r, n);
-        }
-        return true;
+        return ::read(_a, p, n);
     }
 
-    bool write(const void*p, size_t n)
+    virtual size_t writesome(const void*p, size_t n)
     {
-//      fprintf(stderr, "server-write %d\n", n);
-        if (-1==::write(_a, (const char*)p, n))
-            return false;
-//      fprintf(stderr, "server-wrote\n");
-        return true;
+        return ::write(_a, p, n);
     }
 };
 #endif

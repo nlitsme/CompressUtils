@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include "stringutils.h"
 #include "posixerr.h"
+#include "readwriter.h"
+#include "ipclog.h"
 
-#define ipclog(...)
-class popen_ipc_client {
+class popen_ipc_client : public readwriter {
     FILE *_pipe;
 public:
     popen_ipc_client(const std::string& svrname, const StringList& args)
@@ -19,37 +20,14 @@ public:
     {
         // todo: figure out pid of other end of pipe, and kill it
     }
-    bool read(void*p, size_t n)
+    virtual size_t readsome(void*p, size_t n)
     {
-        ipclog("client-reading %d\n", (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= fread((char*)p+total, 1, n-total, _pipe);
-            if (r==-1) {
-                perror("clt-fread");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("clt:read\n");
-        return true;
+        return fread(p, 1, n, _pipe);
     }
-    bool write(const void *p, size_t n)
+
+    virtual size_t writesome(const void*p, size_t n)
     {
-        ipclog("clt:writing %d\n", (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= fwrite((const char*)p+total, 1, n-total, _pipe);
-            if (r==-1) {
-                perror("clt-fwrite");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("clt:wrote\n");
-        return true;
+        return fwrite(p, 1, n, _pipe);
     }
 };
 #endif

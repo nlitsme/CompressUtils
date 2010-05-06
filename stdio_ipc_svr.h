@@ -3,10 +3,10 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define ipclog(...)
-//#define ipclog(...) fprintf(stderr,__VA_ARGS__)
+#include "readwriter.h"
+#include "ipclog.h"
 
-class stdio_ipc_server {
+class stdio_ipc_server : public readwriter {
     int _fds2c;
     int _fdc2s;
 public:
@@ -16,39 +16,14 @@ public:
         close(_fdc2s);
         close(_fds2c);
     }
-    bool read(void*p, size_t n)
+    virtual size_t readsome(void*p, size_t n)
     {
-        ipclog("server-reading(%d) %d\n", _fdc2s, (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r= ::read(_fdc2s, (char*)p+total, n-total);
-            if (r==-1) {
-                perror("svr-read");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("server-read %d\n", (int)n);
-        return true;
+        return ::read(_fdc2s, p, n);
     }
 
-    bool write(const void*p, size_t n)
+    virtual size_t writesome(const void*p, size_t n)
     {
-        ipclog("server-writing(%d) %d\n", _fds2c, (int)n);
-        size_t total= 0;
-        while (total<n)
-        {
-            int r=::write(_fds2c, (const char*)p+total, n-total);
-            if (r==-1)
-            {
-                perror("svr-write");
-                return false;
-            }
-            total += r;
-        }
-        ipclog("server-wrote %d\n", (int)n);
-        return true;
+        return ::write(_fds2c, p, n);
     }
 };
 #endif
