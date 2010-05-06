@@ -1,5 +1,9 @@
 #if defined(USE_SOCKET)
 #include "socket_ipc_svr.h"
+#elif defined(USE_BOOST)
+#include "boost_ipc_svr.h"
+#elif defined(USE_SHMEM)
+#include "shmem_ipc_svr.h"
 #else
 #include "stdio_ipc_svr.h"
 #endif
@@ -15,31 +19,38 @@ void do_server()
 {
 #if defined(USE_SOCKET)
     socket_ipc_server _ipc;
+#elif defined(USE_BOOST)
+    boost_ipc_server _ipc;
+#elif defined(USE_SHMEM)
+    shmem_ipc_server _ipc;
 #else
     stdio_ipc_server _ipc(STDOUT_FILENO,STDIN_FILENO);
 #endif
 
-    int n= 0;
     while (true)
     {
-        ByteVector req(IPCTESTSIZE);
+        DWORD s[2];
+        if (!_ipc.read(s, sizeof(s)))
+            break;
+        ByteVector req(s[0]-8);
         if (!_ipc.read(&req[0], req.size()))
             break;
 
-        fprintf(stderr, "req: %s\n", hexdump(req).c_str());
+        ByteVector res(s[1]);
 
-        ByteVector res(IPCTESTSIZE);
-        for (unsigned i=0 ; i<res.size() ; i++)
-            res[i]= n*16+i;
-        n++;
-
-        if (!_ipc.write(&res.front(), res.size()))
+        if (!_ipc.write(&res[0], res.size()))
             break;
     }
 }
 int main(int argc,char**argv)
 {
+    try {
     do_server();
+    }
+    catch(...)
+    {
+        fprintf(stderr, "EXCEPTION\n");
+    }
 
     return 0;
 }

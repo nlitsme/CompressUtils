@@ -1,9 +1,10 @@
-#ifndef __PIPE_IPC_H__
-#define __PIPE_IPC_H__
+#ifndef __PIPE_IPC_CLT_H__
+#define __PIPE_IPC_CLT_H__
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
 #include "stringutils.h"
+#include "posixerr.h"
 
 #define ipclog(...)
 //#define ipclog(...) fprintf(stderr,__VA_ARGS__)
@@ -19,21 +20,15 @@ public:
     pipe_ipc_client(const std::string& svrname, const StringList& args)
         : _svrname(svrname), _args(args)
     {
-        if (-1==pipe(_fds2c)) {
-            perror("pipe-s2c");
-            exit(1);
-        }
+        if (-1==pipe(_fds2c)) 
+            throw posixerror("pipe-s2c");
         ipclog("s2c: %d, %d\n", _fds2c[0], _fds2c[1]);
-        if (-1==pipe(_fdc2s)) {
-            perror("pipe-c2s");
-            exit(1);
-        }
+        if (-1==pipe(_fdc2s)) 
+            throw posixerror("pipe-c2s");
         ipclog("c2s: %d, %d\n", _fdc2s[0], _fdc2s[1]);
         _pid= fork();
-        if (-1==_pid) {
-            perror("fork");
-            exit(1);
-        }
+        if (-1==_pid) 
+            throw posixerror("fork");
         if (_pid==0) {
             ipclog("child(server)\n");
             run_child();
@@ -51,14 +46,10 @@ public:
     }
     void run_child()
     {
-        if (-1==dup2(_fdc2s[0],STDIN_FILENO)) {
-            perror("dup2(stdin)");
-            exit(1);
-        }
-        if (-1==dup2(_fds2c[1],STDOUT_FILENO)) {
-            perror("dup2(stdout)");
-            exit(1);
-        }
+        if (-1==dup2(_fdc2s[0],STDIN_FILENO)) 
+            throw posixerror("dup2(stdin)");
+        if (-1==dup2(_fds2c[1],STDOUT_FILENO)) 
+            throw posixerror("dup2(stdout)");
         ipclog("svr: %d->stdin, %d->stdout\n", _fdc2s[0], _fds2c[1]);
 
         close(_fdc2s[0]);
@@ -76,8 +67,7 @@ public:
 
         execvp(_svrname.c_str(), argv);
 
-        perror("exec");
-        exit(1);
+        throw posixerror("exec");
     }
     bool read(void*p, size_t n)
     {

@@ -2,6 +2,7 @@
 #define __POPEN_IPC_H__
 #include <stdio.h>
 #include "stringutils.h"
+#include "posixerr.h"
 
 #define ipclog(...)
 class popen_ipc_client {
@@ -12,10 +13,11 @@ public:
         std::string cmdline= svrname+" "+JoinStringList(args, " ");
         _pipe= popen(cmdline.c_str(), "r+");
         if (_pipe==NULL)
-            perror("popen");
+            throw posixerror("clt:popen");
     }
     ~popen_ipc_client()
     {
+        // todo: figure out pid of other end of pipe, and kill it
     }
     bool read(void*p, size_t n)
     {

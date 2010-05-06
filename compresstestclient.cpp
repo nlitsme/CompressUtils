@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "stringutils.h"
 #include "win32compress_client.h"
+#include "util/HiresTimer.h"
 struct compresstest {
     uint32_t dectype;
     uint32_t clen;
@@ -38,6 +39,7 @@ compresstest tests[]= {
 
 int main(int,char**)
 {
+    try {
     win32compress_client svr;
 
     for (unsigned i=0 ; i<sizeof(tests)/sizeof(compresstest) ; i++)
@@ -66,6 +68,27 @@ int main(int,char**)
             fprintf(stderr,"svr:%s\nreal:%s\n", hexdump(out, t.clen).c_str(), hexdump(t.cdata, t.clen).c_str());
         }
     }
+
+    ByteVector v(0x1000);
+    for (unsigned i=0 ; i<v.size() ; i++)
+        v[i]= i*i+13;
+    for (int tp=1 ; tp< 8 ; tp++)
+    {
+        HiresTimer t;
+        for (unsigned i=0 ; i<100 ; i++)
+        {
+            ByteVector cv(0x1000);
+            svr.DoCompressConvert(tp, &cv[0], cv.size(), &v[0], v.size());
+        }
+        fprintf(stderr, "%d : %6d\n", tp, t.msecelapsed());
+    }
+
+    }
+    catch(...)
+    {
+        fprintf(stderr, "EXCEPTION\n");
+    }
+
     return 0;
 }
 

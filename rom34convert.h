@@ -71,7 +71,7 @@ public:
             rom34trace("rom34:dec3(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
             rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= decompress3(in, insize, out, outlength, 0, 1, 4096);
-            if (res!=-1)
+            if (res!=0xFFFFFFFF)
             rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
@@ -79,7 +79,7 @@ public:
             rom34trace("rom34:enc3(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
             rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= compress3(in, insize, out, outlength, 1, 4096);
-            if (res!=-1)
+            if (res!=0xFFFFFFFF)
             rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
@@ -87,7 +87,7 @@ public:
             rom34trace("rom34:dec4(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
             rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= decompress4(in, insize, out, outlength, 0, 1, 4096);
-            if (res!=-1)
+            if (res!=0xFFFFFFFF)
             rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 
@@ -95,7 +95,7 @@ public:
             rom34trace("rom34:enc4(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", in, insize, out, outlength);
             rom34trace("rom34:in :%s\n", hexdump(in, insize).c_str());
             res= compress4(in, insize, out, outlength, 1, 4096);
-            if (res!=-1)
+            if (res!=0xFFFFFFFF)
             rom34trace("rom34:out:%s\n", hexdump(out, res).c_str());
             break;
 

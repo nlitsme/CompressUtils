@@ -81,7 +81,7 @@ public:
         lzxxprtrace("lzxxpr(%d):(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", dwType, in, insize, out, outlength);
         lzxxprtrace("lzxxpr(%d):in :%s\n", dwType, hexdump(in, insize).c_str());
         res= CompressConvert(stream, out, outlength, in, insize);
-        if (res!=-1)
+        if (res!=0xFFFFFFFF)
         lzxxprtrace("lzxxpr(%d):out:%s\n", dwType, hexdump(out, res).c_str());
 //      fprintf(stderr, "->%08x\n", res);
 //      if (res>0 && res<0x10000)

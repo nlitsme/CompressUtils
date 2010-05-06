@@ -15,6 +15,10 @@
 #include "socket_ipc_clt.h"
 #elif defined(USE_PIPE)
 #include "pipe_ipc_clt.h"
+#elif defined(USE_BOOST)
+#include "boost_ipc_clt.h"
+#elif defined(USE_SHMEM)
+#include "shmem_ipc_clt.h"
 #endif
 
 //#define ccltlog(...) fprintf(stderr, __VA_ARGS__)
@@ -29,6 +33,10 @@ class win32compress_client {
     socket_ipc_client _ipc;
 #elif defined(USE_PIPE)
     pipe_ipc_client _ipc;
+#elif defined(USE_BOOST)
+    boost_ipc_client _ipc;
+#elif defined(USE_SHMEM)
+    shmem_ipc_client _ipc;
 #endif
 public:
 

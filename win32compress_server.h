@@ -15,6 +15,10 @@
 #endif
 #if defined(USE_SOCKET)
 #include "socket_ipc_svr.h"
+#elif defined(USE_BOOST)
+#include "boost_ipc_svr.h"
+#elif defined(USE_SHMEM)
+#include "shmem_ipc_svr.h"
 #else
 #include "stdio_ipc_svr.h"
 #endif
@@ -30,6 +34,10 @@ class win32compress_server {
     socket_ipc_server _ipc;
 #elif defined(USE_PIPE)
     stdio_ipc_server _ipc;
+#elif defined(USE_BOOST)
+    boost_ipc_server _ipc;
+#elif defined(USE_SHMEM)
+    shmem_ipc_server _ipc;
 #endif
 
 public:
@@ -81,7 +89,7 @@ case ITSCOMP_ROM4_ENCODE:
         csvrlog("server: sending reply %d bytes\n", result.resultLen);
         if (!_ipc.write(&result, sizeof(result)))
             return false;
-        if (result.resultLen!=-1 && !_ipc.write(&outdata[0], result.resultLen))
+        if (result.resultLen!=0xFFFFFFFF && !_ipc.write(&outdata[0], result.resultLen))
             return false;
         return true;
     }
