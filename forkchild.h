@@ -37,7 +37,7 @@ public:
 
         execvp(svrname.c_str(), argv);
 
-        fprintf(stderr, "failed to exec %s\n", svrname.c_str());
+        fprintf(stderr, "failed to exec %s : %d\n", svrname.c_str(), errno);
         throw posixerror("clt:exec");
 #else
         PROCESS_INFORMATION procinfo;
