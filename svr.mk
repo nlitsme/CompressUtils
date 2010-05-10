@@ -1,9 +1,10 @@
 comp: compresstestclient32 compresstestclient64 compressserver
 boost: testboost64 testboostsvr64 testboost32 testboostsvr32
 shmem: testshmem64 testshmemsvr64 testshmem32 testshmemsvr32
+pty: testpty testptysvr 
 rest: testpopen testsocket testpstreams testsocksvr testpipe teststdiosvr
 
-all: comp boost shmem rest
+all: comp boost shmem rest pty
 
 BOOSTLDFLAGS=-L/opt/local/lib
 BOOSTCFLAGS=-I/opt/local/include
@@ -78,6 +79,12 @@ testshmem32: testshmem32.o stringutils32.o vectorutils32.o debug32.o
 testshmem32.o: testipc.cpp
 	g++ $(CFLAGS) -c -DUSE_SHMEM $(M32FLAG) $^ -o $@
 
+testpty: testpty.o stringutils64.o vectorutils64.o debug64.o
+	g++ $(CFLAGS) $(M64FLAG) -o $@ $^ -liconv
+testpty.o: testipc.cpp
+	g++ $(CFLAGS) -c -DUSE_PTY $(M64FLAG) $^ -o $@
+
+
 
 
 
@@ -119,10 +126,14 @@ runshmem: testshmemsvr32 testshmemsvr64 testshmem32 testshmem64
 	./testshmem32
 	./testshmem64
 
+testptysvr: testptysvr.o stringutils64.o vectorutils64.o debug64.o
+	g++ $(CFLAGS) $(M64FLAG) -o $@ $^ -liconv
+testptysvr.o: testsvr.cpp
+	g++ $(CFLAGS) -c -DUSE_PTY $(M64FLAG) $^ -o $@
 
 
 clean:
-	$(RM) -f $(wildcard *.o *.obj *.exe) compressserver compresstestclient32  compresstestclient64  testpopen  testsocket  testpstreams  testpipe        teststdiosvr  testsocksvr  testboost32  testboostsvr32  testboost64  testboostsvr64   testshmem64 testshmemsvr64 testshmem32 testshmemsvr32      testboostsvr testshmemsvr
+	$(RM) -f $(wildcard *.o *.obj *.exe) compressserver compresstestclient32  compresstestclient64  testpopen  testsocket  testpstreams  testpipe        teststdiosvr  testsocksvr  testboost32  testboostsvr32  testboost64  testboostsvr64   testshmem64 testshmemsvr64 testshmem32 testshmemsvr32      testboostsvr testshmemsvr testptysvr testpty
 
 
 tests:
