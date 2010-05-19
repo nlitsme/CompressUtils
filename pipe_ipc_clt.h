@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "stringutils.h"
-#include "posixerr.h"
+#include "err/posix.h"
 #include "readwriter.h"
 #include "forkchild.h"
 #include "ipclog.h"

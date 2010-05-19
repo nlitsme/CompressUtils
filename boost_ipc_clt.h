@@ -16,7 +16,7 @@
 #include "stringutils.h"
 #include <string>
 #include <algorithm>
-#include "posixerr.h"
+#include "err/posix.h"
 
 #include "readwriter.h"
 #include "forkchild.h"
