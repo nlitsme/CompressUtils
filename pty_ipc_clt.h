@@ -6,7 +6,7 @@
 #include <util.h>       // openpty
 
 #include "stringutils.h"
-#include "posixerr.h"
+#include "err/posix.h"
 #include "readwriter.h"
 #include "forkchild.h"
 

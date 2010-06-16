@@ -2,7 +2,7 @@
 #define __SEMAIPC_H__
 
 #include <semaphore.h>
-#include "posixerr.h"
+#include "err/posix.h"
 #include "util/atomicoperations.h"
 
 template<typename T>

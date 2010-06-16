@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "posixerr.h"
+#include "err/posix.h"
 #include "readwriter.h"
 
 class socket_ipc_server : public readwriter {

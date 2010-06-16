@@ -6,7 +6,7 @@
 #include <fcntl.h>
 
 #include "stringutils.h"
-#include "posixerr.h"
+#include "err/posix.h"
 #include "readwriter.h"
 
 
