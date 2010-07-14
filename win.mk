@@ -2,7 +2,7 @@ boost: testboost.exe testboostsvr.exe
 BOOSTCFLAGS=-Ic:/local/boost/boost_1_39_0
 BOOSTLDFLAGS=-link -libpath:c:/local/boost/boost_1_39_0/lib-x86
 
-CFLAGS=-Wall -EHsc -Zi -I ../../itsutils/common -D_NO_WINDOWS -D_NO_RAPI -DNOMINMAX
+CFLAGS=-Wall -EHsc -Zi -I ../../itsutils/common -I ../../itsutils/common/threading -D_NO_WINDOWS -D_NO_RAPI -DNOMINMAX
 CDEFS=-DUSE_BOOST
 
 stringutils.obj: ../../itsutils/common/stringutils.cpp

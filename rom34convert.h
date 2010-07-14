@@ -1,12 +1,12 @@
 #ifndef __ROM34CONVERT_H__
 #define __ROM34CONVERT_H__
 #include <stdio.h>
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
 #include "wintypes.h"
 #include "dllloader.h"
 #endif
 #include "compress_msgs.h"
-#include "stringutils.h"
+//#include "stringutils.h"
 
 //#define rom34trace(...) fprintf(stderr,__VA_ARGS__)
 #define rom34trace(...)

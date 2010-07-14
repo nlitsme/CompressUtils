@@ -80,7 +80,7 @@ SV* rom3compress(const unsigned char *data, int length)
 
     result= newSV(length); SvPOK_on(result); SvCUR_set(result, length);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM3_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM3_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -99,7 +99,7 @@ SV* rom3uncompress(const unsigned char *data, int length, int outlength)
 
     result= newSV(outlength); SvPOK_on(result); SvCUR_set(result, outlength);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM3_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM3_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -119,7 +119,7 @@ SV* rom4compress(const unsigned char *data, int length)
 
     result= newSV(length); SvPOK_on(result); SvCUR_set(result, length);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM4_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM4_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -138,7 +138,7 @@ SV* rom4uncompress(const unsigned char *data, int length, int outlength)
 
     result= newSV(outlength); SvPOK_on(result); SvCUR_set(result, outlength);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM4_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_ROM4_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -160,7 +160,7 @@ SV* XPR_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 
     result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPR_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPR_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -180,7 +180,7 @@ SV* XPR_CompressEncode(const unsigned char *data, int length)
 
     result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPR_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPR_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -189,6 +189,47 @@ SV* XPR_CompressEncode(const unsigned char *data, int length)
     }
     return result;
 }
+
+SV* XPH_DecompressDecode(const unsigned char *data, int length, U32 outlength)
+{
+    dMY_CXT;
+    SV *result= NULL;
+    U32 dwMaxBlockSize= 0x2000;
+
+    if (length==0) return &PL_sv_undef;
+
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
+
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPH_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
+    if (res==0xFFFFFFFF) {
+        sv_setsv(result, &PL_sv_undef);
+    }
+    else {
+        SvCUR_set(result, res);
+    }
+    return result;
+}
+
+SV* XPH_CompressEncode(const unsigned char *data, int length)
+{
+    dMY_CXT;
+    SV *result= NULL;
+    U32 dwMaxBlockSize= 0x2000;
+
+    if (length==0) return &PL_sv_undef;
+
+    result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
+
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_XPH_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
+    if (res==0xFFFFFFFF) {
+        sv_setsv(result, &PL_sv_undef);
+    }
+    else {
+        SvCUR_set(result, res);
+    }
+    return result;
+}
+
 SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 {
     dMY_CXT;
@@ -199,7 +240,7 @@ SV* LZX_DecompressDecode(const unsigned char *data, int length, U32 outlength)
 
     result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_LZX_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_LZX_DECODE, (unsigned char*)SvPV_nolen(result), outlength, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -218,7 +259,7 @@ SV* LZX_CompressEncode(const unsigned char *data, int length)
 
     result= newSV(dwMaxBlockSize); SvPOK_on(result); SvCUR_set(result, dwMaxBlockSize);
 
-    DWORD res= MY_CXT.client.DoCompressConvert(ITSCOMP_LZX_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
+    U32 res= MY_CXT.client.DoCompressConvert(ITSCOMP_LZX_ENCODE, (unsigned char*)SvPV_nolen(result), length-1, data, length);
     if (res==0xFFFFFFFF) {
         sv_setsv(result, &PL_sv_undef);
     }
@@ -267,6 +308,10 @@ SV* DoXpressEncode(unsigned char *data, int length(data))
 SV* XPR_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
 
 SV* XPR_CompressEncode(unsigned char *data, int length(data))
+
+SV* XPH_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
+
+SV* XPH_CompressEncode(unsigned char *data, int length(data))
 
 SV* LZX_DecompressDecode(unsigned char *data, int length(data), U32 outlength)
 

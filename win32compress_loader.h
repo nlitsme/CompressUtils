@@ -29,6 +29,8 @@ public:
         {
 case ITSCOMP_XPR_DECODE:
 case ITSCOMP_XPR_ENCODE:
+case ITSCOMP_XPH_DECODE:
+case ITSCOMP_XPH_ENCODE:
 case ITSCOMP_LZX_DECODE:
 case ITSCOMP_LZX_ENCODE:
         return _lzxxpr.DoCompressConvert(dwType, out, outlength, data, insize);

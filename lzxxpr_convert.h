@@ -3,12 +3,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__CYGWIN__)
 #include "wintypes.h"
 #include "dllloader.h"
+#else
+#include <windows.h>
 #endif
 #include "compress_msgs.h"
-#include "stringutils.h"
+//#include "stringutils.h"
 
 //#define lzxxprtrace(...) fprintf(stderr, __VA_ARGS__)
 #define lzxxprtrace(...)
@@ -32,7 +34,7 @@ public:
     // (de)compresses   {data|insize} ->  {out|outlength}, returns resulting size
     DWORD DoCompressConvert(int dwType, BYTE*out, DWORD outlength, const BYTE *data, DWORD insize)
     {
-        DWORD stream;
+        DWORD stream=0;
         DWORD res;
         BYTE *in;
 
@@ -50,6 +52,16 @@ public:
             CompressOpen= XPR_CompressOpen;
             CompressConvert= XPR_CompressEncode;
             CompressClose= XPR_CompressClose;
+            break;
+        case ITSCOMP_XPH_DECODE:
+            CompressOpen= XPH_DecompressOpen;
+            CompressConvert= XPH_DecompressDecode;
+            CompressClose= XPH_DecompressClose;
+            break;
+        case ITSCOMP_XPH_ENCODE:
+            CompressOpen= XPH_CompressOpen;
+            CompressConvert= XPH_CompressEncode;
+            CompressClose= XPH_CompressClose;
             break;
         case ITSCOMP_LZX_DECODE:
             CompressOpen= LZX_DecompressOpen;
@@ -102,13 +114,22 @@ public:
         LZX_DecompressClose= NULL;
         LZX_DecompressDecode= NULL;
         LZX_DecompressOpen= NULL;
+
         XPR_CompressClose= NULL;
         XPR_CompressEncode= NULL;
         XPR_CompressOpen= NULL;
         XPR_DecompressClose= NULL;
         XPR_DecompressDecode= NULL;
         XPR_DecompressOpen= NULL;
-        hDllnt= LoadLibrary("cecompr_nt.dll");
+
+        XPH_CompressClose= NULL;
+        XPH_CompressEncode= NULL;
+        XPH_CompressOpen= NULL;
+        XPH_DecompressClose= NULL;
+        XPH_DecompressDecode= NULL;
+        XPH_DecompressOpen= NULL;
+
+        hDllnt= LoadLibrary("cecompr_nt-v2.dll");
         if (hDllnt!=NULL && hDllnt!=INVALID_HANDLE_VALUE) {
             LZX_CompressClose= (FNCompressClose)GetProcAddress(hDllnt, "LZX_CompressClose");
             LZX_CompressEncode= (FNCompressConvert)GetProcAddress(hDllnt, "LZX_CompressEncode");
@@ -116,6 +137,7 @@ public:
             LZX_DecompressClose= (FNCompressClose)GetProcAddress(hDllnt, "LZX_DecompressClose");
             LZX_DecompressDecode= (FNCompressConvert)GetProcAddress(hDllnt, "LZX_DecompressDecode");
             LZX_DecompressOpen= (FNCompressOpen)GetProcAddress(hDllnt, "LZX_DecompressOpen");
+
             XPR_CompressClose= (FNCompressClose)GetProcAddress(hDllnt, "XPR_CompressClose");
             XPR_CompressEncode= (FNCompressConvert)GetProcAddress(hDllnt, "XPR_CompressEncode");
             XPR_CompressOpen= (FNCompressOpen)GetProcAddress(hDllnt, "XPR_CompressOpen");
@@ -127,15 +149,30 @@ public:
             hDllnt= NULL;
             fprintf(stderr,"%08x: failed to load dllnt\n", GetLastError());
         }
+        hDllnt2= LoadLibrary("cecompr_nt_xphxpr.dll");
+        if (hDllnt2!=NULL && hDllnt2!=INVALID_HANDLE_VALUE) {
+            XPH_CompressClose= (FNCompressClose)GetProcAddress(hDllnt2, "XPH_CompressClose");
+            XPH_CompressEncode= (FNCompressConvert)GetProcAddress(hDllnt2, "XPH_CompressEncode");
+            XPH_CompressOpen= (FNCompressOpen)GetProcAddress(hDllnt2, "XPH_CompressOpen");
+            XPH_DecompressClose= (FNCompressClose)GetProcAddress(hDllnt2, "XPH_DecompressClose");
+            XPH_DecompressDecode= (FNCompressConvert)GetProcAddress(hDllnt2, "XPH_DecompressDecode");
+            XPH_DecompressOpen= (FNCompressOpen)GetProcAddress(hDllnt2, "XPH_DecompressOpen");
+        }
+        else {
+            hDllnt2= NULL;
+            fprintf(stderr,"%08x: failed to load dllnt2\n", GetLastError());
+        }
 
     }
     HMODULE hDllnt;
+    HMODULE hDllnt2;
     FNCompressClose LZX_CompressClose;
     FNCompressConvert LZX_CompressEncode;
     FNCompressOpen LZX_CompressOpen;
     FNCompressClose LZX_DecompressClose;
     FNCompressConvert LZX_DecompressDecode;
     FNCompressOpen LZX_DecompressOpen;
+
     FNCompressClose XPR_CompressClose;
     FNCompressConvert XPR_CompressEncode;
     FNCompressOpen XPR_CompressOpen;
@@ -143,7 +180,19 @@ public:
     FNCompressConvert XPR_DecompressDecode;
     FNCompressOpen XPR_DecompressOpen;
 
-static LPVOID Compress_AllocFunc(DWORD AllocSize)
+    FNCompressClose XPH_CompressClose;
+    FNCompressConvert XPH_CompressEncode;
+    FNCompressOpen XPH_CompressOpen;
+    FNCompressClose XPH_DecompressClose;
+    FNCompressConvert XPH_DecompressDecode;
+    FNCompressOpen XPH_DecompressOpen;
+
+#ifndef _WIN32
+#define ALIGN_STACK  __attribute__((force_align_arg_pointer))
+#else
+#define ALIGN_STACK
+#endif
+static LPVOID Compress_AllocFunc(DWORD AllocSize) ALIGN_STACK
 {
     LPVOID p= malloc(AllocSize);
 
@@ -151,7 +200,7 @@ static LPVOID Compress_AllocFunc(DWORD AllocSize)
 
     return p;
 }
-static VOID Compress_FreeFunc(LPVOID Address)
+static VOID Compress_FreeFunc(LPVOID Address) ALIGN_STACK
 {
     //fprintf(stderr,"Compress_FreeFunc(%08lx)\n", Address);
     free(Address);

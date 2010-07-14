@@ -74,6 +74,8 @@ public:
         {
 case ITSCOMP_XPR_DECODE:
 case ITSCOMP_XPR_ENCODE:
+case ITSCOMP_XPH_DECODE:
+case ITSCOMP_XPH_ENCODE:
 case ITSCOMP_LZX_DECODE:
 case ITSCOMP_LZX_ENCODE:
         result.resultLen= _lzxxpr.DoCompressConvert(req.dwType, &outdata[0], req.outlength, &indata[0], req.insize);

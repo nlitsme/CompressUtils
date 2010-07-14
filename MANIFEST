@@ -6,7 +6,8 @@ README
 t/00_compress.t
 CECompressv3.dll
 CECompressv4.dll
-cecompr_nt.dll
+cecompr_nt-v2.dll
+cecompr_nt_xphxpr.dll
 dllloader.cpp
 dllloader.h
 wintypes.h

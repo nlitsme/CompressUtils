@@ -9,7 +9,7 @@ all: comp boost shmem rest pty
 BOOSTLDFLAGS=-L/opt/local/lib
 BOOSTCFLAGS=-I/opt/local/include
 CFLAGS=-Wall -O0 -g -I ../../itsutils/common -I ../../itsutils/common/threading -I ../../itsutils/include/win32 -D_UNIX -D_NO_WINDOWS -D_NO_RAPI
-CDEFS=-DUSE_SOCKET
+CDEFS=-DUSE_PIPE 
 M32FLAG=-m32 -mstackrealign
 M64FLAG=-m64
 

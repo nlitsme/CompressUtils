@@ -9,7 +9,7 @@ my %args= (
     'VERSION_FROM' => 'CompressUtils.pm',
     'dist'	=> {COMPRESS => 'gzip -9f', SUFFIX => 'gz'},
     'clean' => {FILES => ''},
-    'EXE_FILES' => [ qw(cecompr_nt.dll CECompressv3.dll CECompressv4.dll) ],
+    'EXE_FILES' => [ qw(cecompr_nt-v2.dll cecompr_nt_xphxpr.dll CECompressv3.dll CECompressv4.dll) ],
     'H'    => [],
 );
 # .. only using dll's
@@ -17,6 +17,7 @@ my %args= (
 
 if ($^O eq 'cygwin') {
     $args{LIBS} = [ '-L/usr/lib/w32api -lkernel32' ];
+    $args{CCFLAGS} .= ' -x c++';
 }
 elsif ($^O eq 'darwin') {
     system("make -f svr.mk compressserver") && die "make svr error\n";

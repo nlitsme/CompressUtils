@@ -9,7 +9,7 @@ my $loaded;
 
 my $t= 1;
 
-BEGIN { $|=1; print "1..31\n"; }
+BEGIN { $|=1; print "1..36\n"; }
 END { print "not ok $t\n" unless $loaded; }
 use XdaDevelopers::CompressUtils;
 $loaded = 1;
@@ -60,6 +60,11 @@ my $uncompressed5_xpr= pack("H*", "424d86000000000000004600000028000000100000001
 #NOLIBS - testdecompress("DoCeCompressDecode",$compressed5_xpr, $uncompressed5_xpr);
 testdecompress("XPR_DecompressDecode",$compressed5_xpr, $uncompressed5_xpr);
 
+my $compressed_xph= pack("H*", "536600000005006006000000000000000000000006050000000000000000000000050006000060000000000000000000000000000000000000000000000000000505000600000000000000000000000005000000050300060000000000000000040000000000000000000000000000000000000000000000000000000000005006600000050060000000000000000000050006000000000000600000000000004660000000000000600000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a7e338e95b17a8c2e186ff630f26503c25a08102988034aa6cb644b624c9a4cdd4c50d8f8584615f13f801bff92010000");
+my $uncompressed_xph= pack("H*", "424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa, 0x424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa, 0x424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa, 0x424d860000000000000046000000280000001000000010000000010002000000000000030000280f0000ae10000000000000000000000000000080808000c0c0c000ffffff00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82aaaaaa00aaaaa8282aaaa0aa0aaaa2aa8aaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+testdecompress("XPH_DecompressDecode",$compressed_xph, $uncompressed_xph);
+
 print "\n ... with 5 LZX data ... \n";
 
 my $compressed5_lzx= pack("H*","a8000000e50000005b80808d0010510e00000000330300500e452754dc6b2ec802a1674a659ba437edabaaca70b708aaffa9ffff40700000000000cd0d0030017121812726329885cc964e4915aaff3ffeff800000000000000001104200ff42ffff22fd4129593663b748a75aa83093ef5a2f386c5fc730e6b2c2b784cc5b4737b11c19fa20fcbcec0a96fe28c0efa35af83b80076ba675ffa73ea7954b7f8164a204e6787cb945ef110893d06e0040");
@@ -86,6 +91,7 @@ testpair(qw(rom4uncompress rom4compress), $uncompressed4, 1);
 #NOLIBS - testpair(qw(DoCeCompressDecode DoCeCompressEncode), $uncompressed4, 0);
 testpair(qw(LZX_DecompressDecode LZX_CompressEncode), $uncompressed5_lzx, 0);
 testpair(qw(XPR_DecompressDecode XPR_CompressEncode), $uncompressed5_xpr, 0);
+testpair(qw(XPH_DecompressDecode XPH_CompressEncode), $uncompressed_xph, 0);
 
 # this function apparently works differently, it crashes.
 #testpair(qw(DoXpressDecode DoXpressEncode));
@@ -149,6 +155,7 @@ sub testpair {
         $t++;
     }
 
+    #printf("%s -> %s\n", $compress, unpack("H*", $test1));
     # test if v3 decompress works
     my $test3= eval("XdaDevelopers::CompressUtils::$decompress(\$test1, length(\$orig))");
     print "not " if (!defined $test3);
