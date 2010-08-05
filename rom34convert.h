@@ -1,8 +1,8 @@
 #ifndef __ROM34CONVERT_H__
 #define __ROM34CONVERT_H__
 #include <stdio.h>
+#include "util/wintypes.h"
 #if !defined(_WIN32) && !defined(__CYGWIN__)
-#include "wintypes.h"
 #include "dllloader.h"
 #endif
 #include "compress_msgs.h"
@@ -14,8 +14,8 @@
 class rom34convert {
 
 // prototypes of cecompressv3.dll and cecompressv4.dll
-typedef DWORD (*CECOMPRESS)(const unsigned char *lpbSrc, DWORD cbSrc, LPBYTE lpbDest, DWORD cbDest, WORD wStep, DWORD dwPagesize);
-typedef DWORD (*CEDECOMPRESS)(const unsigned char *lpbSrc, DWORD cbSrc, LPBYTE  lpbDest, DWORD cbDest, DWORD dwSkip, WORD wStep, DWORD dwPagesize);
+typedef uint32_t (*CECOMPRESS)(const unsigned char *lpbSrc, uint32_t cbSrc, uint8_t* lpbDest, uint32_t cbDest, uint16_t wStep, uint32_t dwPagesize);
+typedef uint32_t (*CEDECOMPRESS)(const unsigned char *lpbSrc, uint32_t cbSrc, uint8_t*  lpbDest, uint32_t cbDest, uint32_t dwSkip, uint16_t wStep, uint32_t dwPagesize);
 
     HMODULE hDll3;
     CECOMPRESS compress3;
@@ -62,9 +62,9 @@ public:
 //      fprintf(stderr,"loaded rom3+rom4: %p %p\n", hDll3, hDll4);
     }
     // (de)compresses   {data|insize} ->  {out|outlength}, returns resulting size
-    DWORD DoCompressConvert(int dwType, BYTE*out, DWORD outlength, const BYTE *in, DWORD insize)
+    uint32_t DoCompressConvert(int dwType, uint8_t*out, uint32_t outlength, const uint8_t *in, uint32_t insize)
     {
-        DWORD res;
+        uint32_t res;
 //      rom34trace("%d->\nin: %s\n", dwType, hexdump(in, insize).c_str());
         switch(dwType) {
         case ITSCOMP_ROM3_DECODE:

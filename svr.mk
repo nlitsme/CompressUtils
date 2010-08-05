@@ -8,21 +8,28 @@ all: comp boost shmem rest pty
 
 BOOSTLDFLAGS=-L/opt/local/lib
 BOOSTCFLAGS=-I/opt/local/include
-CFLAGS=-Wall -O0 -g -I ../../itsutils/common -I ../../itsutils/common/threading -I ../../itsutils/include/win32 -D_UNIX -D_NO_WINDOWS -D_NO_RAPI
-CDEFS=-DUSE_PIPE 
+CFLAGS=-Wall -O0 -g -I ../../itsutils/common -D_NO_WINDOWS -D_NO_RAPI
+SVRCDEFS=-DUSE_PIPE 
+CLTCDEFS=-D_NO_IPC
 M32FLAG=-m32 -mstackrealign
 M64FLAG=-m64
 
-compresstestclient32: compresstestclient32.o stringutils32.o vectorutils32.o debug32.o
+# $1 = string
+# $2 = def
+has_def=$(filter $2,$1)
+compresstestclient32: compresstestclient32.o stringutils32.o vectorutils32.o debug32.o $(if $(call has_def,$(CLTCDEFS),-D_NO_IPC),dllloader.o)
 	g++ $(CFLAGS) $(M32FLAG) -o $@ $^ -L/usr/lib -liconv $(BOOSTLDFLAGS)
 compresstestclient32.o: compresstestclient.cpp
-	g++ $(CFLAGS) -c $(CDEFS) $(M32FLAG) $^ -o $@ $(BOOSTCFLAGS)
-
+	g++ $(CFLAGS) -c $(CLTCDEFS) $(M32FLAG) $^ -o $@ $(BOOSTCFLAGS)
+ifeq ($(call has_def,$(CLTCDEFS),-D_NO_IPC),)
 compresstestclient64: compresstestclient64.o stringutils64.o vectorutils64.o debug64.o
 	g++ $(CFLAGS) $(M64FLAG) -o $@ $^ -L/usr/lib -liconv $(BOOSTLDFLAGS)
 compresstestclient64.o: compresstestclient.cpp
-	g++ $(CFLAGS) -c $(CDEFS) $(M64FLAG) $^ -o $@ $(BOOSTCFLAGS)
-
+	g++ $(CFLAGS) -c $(CLTCDEFS) $(M64FLAG) $^ -o $@ $(BOOSTCFLAGS)
+else
+compresstestclient64:
+	echo cant link 32bit dll to 64bit code >$@
+endif
 stringutils32.o: ../../itsutils/common/stringutils.cpp
 	g++ $(CFLAGS) -c $(M32FLAG) $^ -o $@
 stringutils64.o: ../../itsutils/common/stringutils.cpp
@@ -41,7 +48,7 @@ debug64.o: ../../itsutils/common/debug.cpp
 compressserver: compressserver.o dllloader.o stringutils32.o vectorutils32.o debug32.o
 	g++ $(CFLAGS) $(M32FLAG) -o $@ $^ -L/usr/lib -liconv $(BOOSTLDFLAGS)
 compressserver.o: compressserver.cpp
-	g++ $(CFLAGS) -c $(CDEFS) $(M32FLAG) $^ -o $@ $(BOOSTCFLAGS)
+	g++ $(CFLAGS) -c $(SVRCDEFS) $(M32FLAG) $^ -o $@ $(BOOSTCFLAGS)
 dllloader.o: dllloader.cpp
 	g++ $(CFLAGS) -c $(M32FLAG) $^ -o $@
 

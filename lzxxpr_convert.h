@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <util/wintypes.h>
 #if !defined(_WIN32) && !defined(__CYGWIN__)
-#include "wintypes.h"
 #include "dllloader.h"
-#else
-#include <windows.h>
 #endif
 #include "compress_msgs.h"
 //#include "stringutils.h"
@@ -18,11 +17,11 @@
 class lzxxpr_convert {
 
 // prototypes of cecompr_nt.dll
-typedef LPVOID (*FNCompressAlloc)(DWORD AllocSize);
-typedef VOID (*FNCompressFree)(LPVOID Address);
-typedef DWORD (*FNCompressOpen)( DWORD dwParam1, DWORD MaxOrigSize, FNCompressAlloc AllocFn, FNCompressFree FreeFn, DWORD dwUnknown);
-typedef DWORD (*FNCompressConvert)( DWORD stream, LPVOID out, DWORD outlength, LPCVOID in, DWORD insize); 
-typedef VOID (*FNCompressClose)( DWORD stream);
+typedef void* (*FNCompressAlloc)(uint32_t AllocSize);
+typedef void (*FNCompressFree)(void* Address);
+typedef uint32_t (*FNCompressOpen)( uint32_t dwParam1, uint32_t MaxOrigSize, FNCompressAlloc AllocFn, FNCompressFree FreeFn, uint32_t dwUnknown);
+typedef uint32_t (*FNCompressConvert)( uint32_t stream, void* out, uint32_t outlength, void* in, uint32_t insize); 
+typedef void (*FNCompressClose)( uint32_t stream);
 
 public:
     lzxxpr_convert()
@@ -32,11 +31,11 @@ public:
     }
 
     // (de)compresses   {data|insize} ->  {out|outlength}, returns resulting size
-    DWORD DoCompressConvert(int dwType, BYTE*out, DWORD outlength, const BYTE *data, DWORD insize)
+    uint32_t DoCompressConvert(int dwType, uint8_t*out, uint32_t outlength, const uint8_t *data, uint32_t insize)
     {
-        DWORD stream=0;
-        DWORD res;
-        BYTE *in;
+        uint32_t stream=0;
+        uint32_t res;
+        uint8_t *in;
 
         FNCompressOpen CompressOpen= NULL;
         FNCompressConvert CompressConvert= NULL;
@@ -81,13 +80,13 @@ public:
             return 0xFFFFFFFF;
         }
         if (CompressOpen) {
-            stream= CompressOpen(0x10000, 0x2000, &Compress_AllocFunc, &Compress_FreeFunc, 0);
+            stream= CompressOpen(0x10000, 0x1000, &Compress_AllocFunc, &Compress_FreeFunc, 0);
             if (stream==0 || stream==0xFFFFFFFF) {
                 return 0xFFFFFFFF;
             }
         }
 
-        in= new BYTE[0x2000];
+        in= new uint8_t[0x2000];
         memcpy(in, data, insize);
 
         lzxxprtrace("lzxxpr(%d):(%p, 0x%x, %p, 0x%x, 0, 1, 4096)\n", dwType, in, insize, out, outlength);
@@ -192,15 +191,15 @@ public:
 #else
 #define ALIGN_STACK
 #endif
-static LPVOID Compress_AllocFunc(DWORD AllocSize) ALIGN_STACK
+static void* Compress_AllocFunc(uint32_t AllocSize) ALIGN_STACK
 {
-    LPVOID p= malloc(AllocSize);
+    void* p= malloc(AllocSize);
 
     //fprintf(stderr,"Compress_AllocFunc(%08lx) -> %08lx\n", AllocSize, p);
 
     return p;
 }
-static VOID Compress_FreeFunc(LPVOID Address) ALIGN_STACK
+static void Compress_FreeFunc(void* Address) ALIGN_STACK
 {
     //fprintf(stderr,"Compress_FreeFunc(%08lx)\n", Address);
     free(Address);

@@ -2,7 +2,7 @@
 #define _WIN32COMPRESS_CLIENT_
 #include <stdio.h>
 #include <string.h>
-#include "wintypes.h"
+#include "util/wintypes.h"
 // note: see http://pstreams.sourceforge.net/  for a better bidirectional pipe
 
 #include "compress_msgs.h"
@@ -48,7 +48,7 @@ public:
     void loaddlls()
     {
     }
-    DWORD DoCompressConvert(int dwType, unsigned char*out, DWORD outlength, const unsigned char *data, DWORD insize)
+    uint32_t DoCompressConvert(int dwType, unsigned char*out, uint32_t outlength, const unsigned char *data, uint32_t insize)
     {
         compressrequest  req;
         req.dwType          =dwType;

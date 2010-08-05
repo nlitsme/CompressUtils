@@ -3,6 +3,7 @@
 #include "compress_msgs.h"
 #include "lzxxpr_convert.h"
 #include "rom34convert.h"
+#include "vectorutils.h"
 
 #if defined(USE_POPEN)
 #include "popen_ipc_clt.h"
