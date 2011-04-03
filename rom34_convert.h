@@ -1,5 +1,5 @@
-#ifndef __ROM34CONVERT_H__
-#define __ROM34CONVERT_H__
+#ifndef __ROM34_CONVERT_H__
+#define __ROM34_CONVERT_H__
 #include <stdio.h>
 #include "util/wintypes.h"
 #if !defined(_WIN32) && !defined(__CYGWIN__)
@@ -11,7 +11,7 @@
 //#define rom34trace(...) fprintf(stderr,__VA_ARGS__)
 #define rom34trace(...)
 
-class rom34convert {
+class rom34_convert {
 
 // prototypes of cecompressv3.dll and cecompressv4.dll
 typedef uint32_t (*CECOMPRESS)(const unsigned char *lpbSrc, uint32_t cbSrc, uint8_t* lpbDest, uint32_t cbDest, uint16_t wStep, uint32_t dwPagesize);
@@ -27,7 +27,7 @@ typedef uint32_t (*CEDECOMPRESS)(const unsigned char *lpbSrc, uint32_t cbSrc, ui
     CEDECOMPRESS decompress4;
 
 public:
-    rom34convert()
+    rom34_convert()
     {
         loaddlls();
     }
@@ -37,12 +37,12 @@ public:
         compress4= NULL;
         decompress4= NULL;
         hDll4= LoadLibrary("CECompressv4.dll");
-        if (hDll4!=NULL && hDll4!=INVALID_HANDLE_VALUE) {
+        if (hDll4!=NULLMODULE && hDll4!=INVALID_HANDLE_VALUE) {
             compress4= (CECOMPRESS)GetProcAddress(hDll4, "CECompress");
             decompress4= (CEDECOMPRESS)GetProcAddress(hDll4, "CEDecompress");
         }
         else {
-            hDll4= NULL;
+            hDll4= NULLMODULE;
             fprintf(stderr,"%08x: failed to load dll4\n", GetLastError());
         }
 
@@ -50,13 +50,13 @@ public:
         decompress3= NULL;
         decompressRom3= NULL;
         hDll3= LoadLibrary("CECompressv3.dll");
-        if (hDll3!=NULL && hDll3!=INVALID_HANDLE_VALUE) {
+        if (hDll3!=NULLMODULE && hDll3!=INVALID_HANDLE_VALUE) {
             compress3= (CECOMPRESS)GetProcAddress(hDll3, "CECompress");
             decompress3= (CEDECOMPRESS)GetProcAddress(hDll3, "CEDecompress");
             decompressRom3= (CEDECOMPRESS)GetProcAddress(hDll3, "CEDecompressROM");
         }
         else {
-            hDll3= NULL;
+            hDll3= NULLMODULE;
             fprintf(stderr,"%08x: failed to load dll3\n", GetLastError());
         }
 //      fprintf(stderr,"loaded rom3+rom4: %p %p\n", hDll3, hDll4);

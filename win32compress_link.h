@@ -2,14 +2,14 @@
 #define __WIN32COMPRESS_SERVER_H__
 #include "compress_msgs.h"
 #include "lzxxpr_convert.h"
-#include "rom34convert.h"
+#include "rom34_convert.h"
 
 //#define csvrlog(...) fprintf(stderr, __VA_ARGS__)
 #define csvrlog(...)
 
 class win32compress_link {
     lzxxpr_convert _lzxxpr;
-    rom34convert  _rom34;
+    rom34_convert  _rom34;
 
 public:
     win32compress_link()

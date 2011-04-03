@@ -129,7 +129,7 @@ public:
         XPH_DecompressOpen= NULL;
 
         hDllnt= LoadLibrary("cecompr_nt-v2.dll");
-        if (hDllnt!=NULL && hDllnt!=INVALID_HANDLE_VALUE) {
+        if (hDllnt!=NULLMODULE && hDllnt!=INVALID_HANDLE_VALUE) {
             LZX_CompressClose= (FNCompressClose)GetProcAddress(hDllnt, "LZX_CompressClose");
             LZX_CompressEncode= (FNCompressConvert)GetProcAddress(hDllnt, "LZX_CompressEncode");
             LZX_CompressOpen= (FNCompressOpen)GetProcAddress(hDllnt, "LZX_CompressOpen");
@@ -145,11 +145,11 @@ public:
             XPR_DecompressOpen= (FNCompressOpen)GetProcAddress(hDllnt, "XPR_DecompressOpen");
         }
         else {
-            hDllnt= NULL;
+            hDllnt= NULLMODULE;
             fprintf(stderr,"%08x: failed to load dllnt\n", GetLastError());
         }
         hDllnt2= LoadLibrary("cecompr_nt_xphxpr.dll");
-        if (hDllnt2!=NULL && hDllnt2!=INVALID_HANDLE_VALUE) {
+        if (hDllnt2!=NULLMODULE && hDllnt2!=INVALID_HANDLE_VALUE) {
             XPH_CompressClose= (FNCompressClose)GetProcAddress(hDllnt2, "XPH_CompressClose");
             XPH_CompressEncode= (FNCompressConvert)GetProcAddress(hDllnt2, "XPH_CompressEncode");
             XPH_CompressOpen= (FNCompressOpen)GetProcAddress(hDllnt2, "XPH_CompressOpen");
@@ -158,7 +158,7 @@ public:
             XPH_DecompressOpen= (FNCompressOpen)GetProcAddress(hDllnt2, "XPH_DecompressOpen");
         }
         else {
-            hDllnt2= NULL;
+            hDllnt2= NULLMODULE;
             fprintf(stderr,"%08x: failed to load dllnt2\n", GetLastError());
         }
 

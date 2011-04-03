@@ -1,10 +1,10 @@
 #ifndef __WIN32COMPRESS_LOADER_H__
 #define __WIN32COMPRESS_LOADER_H__
 #include "lzxxpr_convert.h"
-#include "rom34convert.h"
+#include "rom34_convert.h"
 class win32compress_loader {
     lzxxpr_convert _lzxxpr;
-    rom34convert  _rom34;
+    rom34_convert  _rom34;
 
 public:
     win32compress_loader()

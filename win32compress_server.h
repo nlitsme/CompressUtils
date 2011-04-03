@@ -2,7 +2,7 @@
 #define __WIN32COMPRESS_SERVER_H__
 #include "compress_msgs.h"
 #include "lzxxpr_convert.h"
-#include "rom34convert.h"
+#include "rom34_convert.h"
 #include "vectorutils.h"
 
 #if defined(USE_POPEN)
@@ -29,7 +29,7 @@
 
 class win32compress_server {
     lzxxpr_convert _lzxxpr;
-    rom34convert  _rom34;
+    rom34_convert  _rom34;
 
 #if defined(USE_SOCKET)
     socket_ipc_server _ipc;
