@@ -7,6 +7,8 @@
 #include <util/wintypes.h>
 #if !defined(_WIN32) && !defined(__CYGWIN__)
 #include "dllloader.h"
+#else
+#define NULLMODULE NULL
 #endif
 #include "compress_msgs.h"
 //#include "stringutils.h"
