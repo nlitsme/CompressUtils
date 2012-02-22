@@ -148,7 +148,7 @@ public:
         }
         else {
             hDllnt= NULLMODULE;
-            fprintf(stderr,"%08x: failed to load dllnt\n", GetLastError());
+            fprintf(stderr,"%08x: failed to load cecompr_nt-v2.dll\n", GetLastError());
         }
         hDllnt2= LoadLibrary("cecompr_nt_xphxpr.dll");
         if (hDllnt2!=NULLMODULE && hDllnt2!=INVALID_HANDLE_VALUE) {
@@ -161,7 +161,7 @@ public:
         }
         else {
             hDllnt2= NULLMODULE;
-            fprintf(stderr,"%08x: failed to load dllnt2\n", GetLastError());
+            fprintf(stderr,"%08x: failed to load cecompr_nt_xphxpr.dll\n", GetLastError());
         }
 
     }
