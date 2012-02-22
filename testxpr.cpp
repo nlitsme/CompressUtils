@@ -7,10 +7,10 @@
 typedef std::vector<uint8_t> ByteVector;
 //uint8_t test[]= { 0xff,0xff,0x03,0x04,0x16,0x1f,0x00,0xea,0x00,0x07,0x00,0x1f,0x22,0x45,0x43,0x45,0x43,0x00,0xc5,0x20,0x80,0x18,0x00,0xaf,0x00,0x07,0x00,0x0f,0xff,0xa7,0x0f, };
 
-// g++-mp-4.5 -m32 testxpr.cpp -I ../../itsutils/common dllloader.cpp ../../itsutils/common/stringutils.cpp -liconv
+// g++-mp-4.5 -m32 testxpr.cpp -I ../../itsutils/common dllloader.cpp ../../itsutils/common/stringutils.cpp 
 //
 // echo 0086a20a424d86000300461800281800101c00010002c30003b8000f0000aea10007006180808000c0c0c000ffff010008ffff00aa07002aa8aaaa0aa0aaaa8282aaaaa00aaaaaa82a3b007900b900f900070001 | unhex | ./a.out 134
-// g++-mp-4.5 -m32 -I ../../itsutils/common testxpr.cpp ../../itsutils/common/debug.cpp -D_NO_RAPI dllloader.cpp  ../../itsutils/common/stringutils.cpp  -liconv
+// g++-mp-4.5 -m32 -I ../../itsutils/common testxpr.cpp ../../itsutils/common/debug.cpp -D_NO_RAPI dllloader.cpp  ../../itsutils/common/stringutils.cpp  
 int main(int argc,char**argv)
 {
     DebugStdOut();
