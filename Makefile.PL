@@ -22,15 +22,16 @@ if ($^O eq 'cygwin') {
 elsif ($^O eq 'darwin') {
     system("make -f svr.mk compressserver") && die "make svr error\n";
     push @{$args{EXE_FILES}}, 'compressserver';
-    $args{CC}='g++';
-    $args{OBJECT} = '$(BASEEXT)$(OBJ_EXT)';
+    $args{CC}='clang++';
+    $args{OBJECT} = '$(BASEEXT)$(OBJ_EXT) dllloader.o';
     #   dllloader$(OBJ_EXT) -- only when !use64bitall
-    $args{LIBS} = [ '-lstdc++.6' ];
+#    $args{LIBS} = [ '-lstdc++.6' ];
 # todo: figure out how to distinguish between 64bit and 32bit osx
     #    -mstackrealign is only needed for 32bit osx
     # to build 32bit binaries: add -m32
-    $args{CCFLAGS} .= ' -DUSE_PIPE -I ../../itsutils/common';
-#   $args{CCFLAGS} .= ' -mstackrealign -m32';
+    $args{CCFLAGS} .= '-DUSE_PIPE -I ../../itsutils/common';
+    $args{CCFLAGS} .= ' -mstackrealign -m32';
+    $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
 #   $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
 
 

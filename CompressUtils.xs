@@ -12,11 +12,6 @@
     # Author: Willem Hengeveld <itsme@xs4all.nl>
  */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-#define CROAK croak
-
 #include "compress_msgs.h"
 
 #ifdef __LP64__
@@ -24,6 +19,14 @@
 #else
 #include "win32compress_loader.h"
 #endif
+
+// perl headers should be last since they define many global macro's
+//   confusing c++ headers
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+#define CROAK croak
+
 
 #pragma optimize("", off)
 
