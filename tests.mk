@@ -2,7 +2,7 @@ all: testxph testxpr
 testxph: testxph.o stringutils.o dllloader.o
 testxpr: testxpr.o stringutils.o dllloader.o debug.o FileFunctions.o
 
-CXX=g++-mp-4.5
+CXX=clang++-mp-3.1
 
 CFLAGS=-Wall -m32 -g -I ../../itsutils/common -D_UNIX -D_NO_RAPI
 LDFLAGS=-m32 -g
