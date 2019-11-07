@@ -1,11 +1,21 @@
 COMPRESSUTILS
+============
 
 this xs module is an interface to the wince rom compression library.
 
 it needs nkcompr.lib from the platformbuilder to compile.
 ( take it from either the 'x86/debug' or 'x86/retail' directory. )
 
+DEPENDENCIES
+============
+
+This code depends on:
+
+ * [dllloader](https://github.com/nlitsme/dllloader)
+ * [itsutils](http://nah6.com/~itsme/cvs-xdadevtools/itsutils/)
+
 BUILD INSTRUCTIONS:
+============
 
 0) make sure the vc++ environment is setup correctly
     ( by running vcvars32.bat )
