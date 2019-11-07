@@ -28,21 +28,21 @@ BUILD INSTRUCTIONS:
 
 USAGE:
 
-   OS    |            --- perl functions ---         |  library         | library functions
- version | compress             | decompress         |                  |
----------+----------------------+--------------------+------------------+------------------------------------
-  3.x    | romcompress_v3       | romuncompress_v3   | nkcompr.lib      | CECompress, CEDecompress          
-         | rom3compress         | rom3uncompress     | CECompressv3.dll | CECompress, CEDecompress
----------+----------------------+--------------------+------------------+------------------------------------
-  4.x    | rom4compress         | rom4uncompress     | CECompressv4.dll | CECompress, CEDecompress
-         |                      | romuncompress_v4   | nkcompr.lib      | CEDecompressROM
-         |                      | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
----------+----------------------+--------------------+------------------+------------------------------------
- 5.x XPR | DoCeCompressEncode   | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
-         | XPR_DecompressDecode | XPR_CompressEncode | cecompr_nt.dll   | same
----------+----------------------+--------------------+------------------+------------------------------------
- 5.x LZX | LZX_DecompressDecode | LZX_CompressEncode | cecompr_nt.dll   | same
----------+----------------------+--------------------+------------------+------------------------------------
+       OS    |            --- perl functions ---         |  library         | library functions
+     version | compress             | decompress         |                  |
+    ---------+----------------------+--------------------+------------------+------------------------------------
+      3.x    | romcompress_v3       | romuncompress_v3   | nkcompr.lib      | CECompress, CEDecompress          
+             | rom3compress         | rom3uncompress     | CECompressv3.dll | CECompress, CEDecompress
+    ---------+----------------------+--------------------+------------------+------------------------------------
+      4.x    | rom4compress         | rom4uncompress     | CECompressv4.dll | CECompress, CEDecompress
+             |                      | romuncompress_v4   | nkcompr.lib      | CEDecompressROM
+             |                      | rom3uncompressRom  | CECompressv3.dll | CEDecompressROM
+    ---------+----------------------+--------------------+------------------+------------------------------------
+     5.x XPR | DoCeCompressEncode   | DoCeCompressDecode | cecompress.lib   | CeCompressEncode, CeCompressDecode
+             | XPR_DecompressDecode | XPR_CompressEncode | cecompr_nt.dll   | same
+    ---------+----------------------+--------------------+------------------+------------------------------------
+     5.x LZX | LZX_DecompressDecode | LZX_CompressEncode | cecompr_nt.dll   | same
+    ---------+----------------------+--------------------+------------------+------------------------------------
 
 * the XpressXXX functions in cecompress.lib are used by the CeCompressXXX functions
 
