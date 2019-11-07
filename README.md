@@ -44,7 +44,7 @@ or as PPM package, on [2].
 
 REFERENCES
 
-[1] http://nah6.com/~itsme/cvs-xdadevtools/
+[1] http://nah6.com/~itsme/cvs-xdadevtools/perlutils/CompressUtils/
 [2] http://www.xs4all.nl/~itsme/projects/perl/ppm 
 [3] http://www.xs4all.nl/~itsme/projects/perl/ppm/cecompr-libs.zip
 
