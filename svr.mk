@@ -8,7 +8,7 @@ all: comp boost shmem rest pty
 
 BOOSTLDFLAGS=-L/opt/local/lib
 BOOSTCFLAGS=-I/opt/local/include
-CFLAGS=-Wall -O0 -g -I ../../itsutils/common -D_NO_WINDOWS -D_NO_RAPI
+CFLAGS=-Wall -O0 -g -I ../../../itslib/include/itslib -D_NO_WINDOWS -D_NO_RAPI
 SVRCDEFS=-DUSE_PIPE 
 CLTCDEFS=-D_NO_IPC
 M32FLAG=-m32 -mstackrealign
@@ -30,17 +30,17 @@ else
 compresstestclient64:
 	echo cant link 32bit dll to 64bit code >$@
 endif
-stringutils32.o: ../../itsutils/common/stringutils.cpp
+stringutils32.o: ../../../itslib/src/stringutils.cpp
 	g++ $(CFLAGS) -c $(M32FLAG) $^ -o $@
-stringutils64.o: ../../itsutils/common/stringutils.cpp
+stringutils64.o: ../../../itslib/src/stringutils.cpp
 	g++ $(CFLAGS) -c $(M64FLAG) $^ -o $@
-vectorutils32.o: ../../itsutils/common/vectorutils.cpp
+vectorutils32.o: ../../../itslib/src/vectorutils.cpp
 	g++ $(CFLAGS) -c $(M32FLAG) $^ -o $@
-vectorutils64.o: ../../itsutils/common/vectorutils.cpp
+vectorutils64.o: ../../../itslib/src/vectorutils.cpp
 	g++ $(CFLAGS) -c $(M64FLAG) $^ -o $@
-debug32.o: ../../itsutils/common/debug.cpp
+debug32.o: ../../../itslib/src/debug.cpp
 	g++ $(CFLAGS) -c $(M32FLAG) $^ -o $@
-debug64.o: ../../itsutils/common/debug.cpp
+debug64.o: ../../../itslib/src/debug.cpp
 	g++ $(CFLAGS) -c $(M64FLAG) $^ -o $@
 
 

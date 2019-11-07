@@ -29,7 +29,7 @@ elsif ($^O eq 'darwin') {
 # todo: figure out how to distinguish between 64bit and 32bit osx
     #    -mstackrealign is only needed for 32bit osx
     # to build 32bit binaries: add -m32
-    $args{CCFLAGS} .= '-DUSE_PIPE -I ../../itsutils/common';
+    $args{CCFLAGS} .= '-DUSE_PIPE -I ../../../itslib/include/itslib';
     $args{CCFLAGS} .= ' -mstackrealign -m32';
     $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
 #   $args{LDDLFLAGS} = '-m32 -L/opt/local/lib -bundle -undefined dynamic_lookup -L/usr/local/lib';
